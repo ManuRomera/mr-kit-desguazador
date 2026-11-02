@@ -105,7 +105,11 @@
     {{#if armas.length}}
     <ul class="mr-kit-lista">
       {{#each armas}}
-      <li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong>{{#if defensiva}} <span class="mr-kit-rasgo">defensiva</span>{{else}} <a data-action="disparar" data-item-id="{{id}}" class="mr-kit-boton-mini" data-tooltip="Tirada de Batalla contra la nave marcada como objetivo (T)"><i class="fa-solid fa-crosshairs"></i> Disparar</a>{{/if}} <span class="mr-kit-bonus">+{{bonus}}</span></li>
+      <li><img src="{{img}}" width="22" height="22" alt="" />
+        {{#if defensiva}}<strong>{{nombre}}</strong> <span class="mr-kit-rasgo">defensiva</span>
+        {{else}}<a data-action="disparar" data-item-id="{{id}}" class="mr-kit-arma-nombre" data-tooltip="Disparar: tirada de Batalla contra la nave marcada como objetivo (T)"><strong>{{nombre}}</strong></a>{{/if}}
+        {{#if vacia}}<a data-action="rearmar" data-item-id="{{id}}" class="mr-kit-rearmar vacia" data-tooltip="Sin reabastecer: pulsa para rearmar" aria-label="Rearmar {{nombre}}"><i class="fa-solid fa-battery-empty"></i></a>{{else}}<span class="mr-kit-rearmar cargada" data-tooltip="Cargada"><i class="fa-solid fa-battery-full"></i></span>{{/if}}
+        <span class="mr-kit-bonus">+{{bonus}}</span></li>
       {{/each}}
     </ul>
     {{else}}
@@ -126,6 +130,16 @@
     </ul>
     {{else}}
     <p class="mr-kit-nota">Sin mejoras instaladas.</p>
+    {{/if}}
+
+    <h3>Tripulación <small>(arrastra personajes a la ficha de la nave)</small></h3>
+    {{#if tripulacion.length}}
+    <ul class="mr-kit-lista">
+      {{#each tripulacion}}<li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong> <span class="mr-kit-rasgo">{{puesto}}</span></li>{{/each}}
+    </ul>
+    <p class="mr-kit-nota">Al disparar o tirar una Característica de la nave eliges la habilidad de un tripulante, que se suma.</p>
+    {{else}}
+    <p class="mr-kit-nota">Sin personajes en la tripulación. Arrástralos a la ficha de la nave para sumar sus habilidades a las tiradas de la nave.</p>
     {{/if}}
 
     {{#if hangar.length}}

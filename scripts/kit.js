@@ -129,17 +129,65 @@ Hooks.on("renderActorSheet", (app, html) => {
   });
   nav.appendChild(enlace);
 
-  // Un botón Disparar en cada arma ofensiva de la pestaña de armas.
-  raiz.querySelectorAll('.tab[data-tab="weapons"] li.item[data-item-id]').forEach((fila) => {
+  // Pestaña de armas: como en la ficha de un personaje, se dispara pulsando el nombre del arma.
+  const armas = raiz.querySelector('.tab[data-tab="weapons"]');
+  if (!armas) return;
+  armas.addEventListener("click", (ev) => {
+    const nombre = ev.target.closest(".weapon-roll");
+    if (!nombre) return;
+    ev.preventDefault();
+    ev.stopImmediatePropagation(); // en lugar de solo mostrar la descripción
+    const arma = app.actor.items.get(nombre.closest("li.item")?.dataset.itemId);
+    dispararNave(app.actor, arma);
+  }, true);
+  armas.querySelectorAll(".weapon-roll").forEach((n) => { n.dataset.tooltip = "Disparar: tirada de Batalla contra la nave marcada como objetivo (T)"; });
+
+  // Estado de cada arma (cargada o sin reabastecer) y barra para terminar el combate y rearmar.
+  armas.querySelectorAll("li.item[data-item-id]").forEach((fila) => {
     const arma = app.actor.items.get(fila.dataset.itemId);
     const controles = fila.querySelector(".item-controls");
-    if (!arma || arma.flags?.[MODULE]?.defensiva || !controles || controles.querySelector(".mr-kit-disparar")) return;
+    if (!arma || !controles || controles.querySelector(".mr-kit-rearmar")) return;
+    const vacia = Boolean(arma.flags?.[MODULE]?.vacia);
     const a = document.createElement("a");
-    a.className = "item-control mr-kit-disparar";
-    a.dataset.tooltip = "Disparar: tirada de Batalla contra la nave marcada como objetivo (T)";
-    a.setAttribute("aria-label", `Disparar ${arma.name}`);
-    a.innerHTML = '<i class="fa-solid fa-crosshairs"></i>';
-    a.addEventListener("click", (ev) => { ev.preventDefault(); ev.stopPropagation(); dispararNave(app.actor, arma); });
+    a.className = `item-control mr-kit-rearmar ${vacia ? "vacia" : "cargada"}`;
+    a.dataset.tooltip = vacia ? "Sin reabastecer: pulsa para rearmar esta arma" : "Cargada";
+    a.setAttribute("aria-label", vacia ? `Rearmar ${arma.name}` : `${arma.name} cargada`);
+    a.innerHTML = `<i class="fa-solid ${vacia ? "fa-battery-empty" : "fa-battery-full"}"></i>`;
+    if (vacia) a.addEventListener("click", (ev) => { ev.preventDefault(); ev.stopPropagation(); macros.reabastecerArma(app.actor, arma); });
     controles.prepend(a);
   });
+  const lista = armas.querySelector("ol.items-list");
+  if (lista && !armas.querySelector(".mr-kit-armas-barra") && app.actor.items.some((i) => i.type === "weapon")) {
+    const pendiente = Number(app.actor.flags?.[MODULE]?.pendiente) || 0;
+    const barra = document.createElement("div");
+    barra.className = "mr-kit-armas-barra";
+    barra.innerHTML = `<span>${pendiente >= 2 ? "Armas sin reabastecer: la nave falla la Batalla." : pendiente === 1 ? "Armas sin reabastecer: [-] en Batalla en el próximo combate." : app.actor.flags?.[MODULE]?.armasUsadas ? "Has usado las armas: al terminar el combate hay que reabastecerlas." : "Pulsa el nombre de un arma para disparar."}</span>
+      <a class="mr-kit-barra-boton" data-accion="terminar"><i class="fa-solid fa-flag-checkered"></i> Terminar el combate</a>
+      <a class="mr-kit-barra-boton" data-accion="rearmar"><i class="fa-solid fa-gun"></i> Rearmar todas</a>`;
+    barra.addEventListener("click", (ev) => {
+      const accion = ev.target.closest("[data-accion]")?.dataset.accion;
+      if (accion === "terminar") macros.terminarCombate(app.actor);
+      if (accion === "rearmar") macros.reabastecer(app.actor);
+    });
+    lista.before(barra);
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* Tripulación: arrastrar un personaje a la ficha de la nave           */
+/* ------------------------------------------------------------------ */
+Hooks.on("dropActorSheetData", (nave, hoja, datos) => {
+  if (nave.type !== "ship" || datos?.type !== "Actor") return;
+  const personaje = fromUuidSync(datos.uuid);
+  if (!personaje || personaje.type !== "character") return;
+  if (nave.items.some((i) => i.type === "crew" && i.flags?.[MODULE]?.actorUuid === personaje.uuid)) {
+    ui.notifications.info(`${personaje.name} ya forma parte de la tripulación de ${nave.name}.`);
+    return false;
+  }
+  nave.createEmbeddedDocuments("Item", [{
+    name: personaje.name, type: "crew", img: personaje.img,
+    system: { job: String(personaje.system.class?.value ?? ""), text: "" },
+    flags: { [MODULE]: { actorUuid: personaje.uuid } },
+  }]).then(() => ui.notifications.info(`${personaje.name} se une a la tripulación de ${nave.name}: sus habilidades se pueden sumar a las tiradas de la nave.`));
+  return false;
 });

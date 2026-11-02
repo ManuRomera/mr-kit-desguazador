@@ -5,7 +5,7 @@
 import { dispararNave } from "./ataque.js";
 import { MODULE } from "./util.js";
 import {
-  aviso, elegirNave, elegirModo, tirarSistema, publicarTirada, filaDado, tarjeta,
+  aviso, elegirNave, elegirModo, pedirTirada, tirarSistema, publicarTirada, filaDado, tarjeta,
   mdmgTotal, armasPendientes, modoConPenalizacion, precioReabastecer, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
   claseNave, formatearCreditos,
 } from "./util.js";
@@ -45,19 +45,10 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
   if (caracteristica === "thrusters" && efecto === 3) return ui.notifications.warn("Sin navegación (MDMG 3): la nave no puede hacer tiradas de Propulsores.");
   const sinArmas = caracteristica === "battle" && (efecto === 2 || armasPendientes(nave) >= 2);
 
-  const datos = await DialogV2.wait({
-    window: { title: `Tirada de ${nombre} · ${nave.name}` },
-    classes: ["mr-kit-dialogo", "macro-popup-dialog"],
-    content: `<div class="form-group"><label>Tipo de tirada</label>
-        <select name="modo"><option value="normal">Normal</option><option value="ventaja">Ventaja [+]</option><option value="desventaja">Desventaja [-]</option></select></div>
-      <div class="form-group"><label>Bonificación de habilidad (solo una persona la aporta)</label>
-        <input type="number" name="hab" value="0" min="0" max="30"></div>`,
-    buttons: [{ label: "Tirar", action: "tirar", icon: "fa-solid fa-dice-d20", default: true, callback: (e, b) => ({ modo: b.form.elements.modo.value, hab: Number(b.form.elements.hab.value) || 0 }) }],
-    rejectClose: false,
-  });
+  const datos = await pedirTirada(nave, `Tirada de ${nombre} · ${nave.name}`);
   if (!datos) return;
 
-  const valor = (Number(nave.system.stats[caracteristica].value) || 0) + datos.hab;
+  const valor = (Number(nave.system.stats[caracteristica].value) || 0) + datos.bonus;
   const modo = caracteristica === "battle" ? modoConPenalizacion(nave, datos.modo) : datos.modo;
   const rolls = [];
   let t = { total: null, exito: false, critico: false, dados: [] };
@@ -71,7 +62,7 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
   if (sinArmas) cuerpo += `<p class="mr-kit-nota">${efecto === 2 ? "Armas inactivas (MDMG 2)" : "Armas sin reabastecer"}: la nave falla todas las tiradas de Batalla.</p>`;
   if (!t.exito) cuerpo += `<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong> @UUID[Compendium.mosh.macros_triggered_1e.dvJR9DYXI2kV0BbR]{+1 Estrés}${t.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`;
   const icono = { thrusters: "viaje", battle: "combate", systems: "averia" }[caracteristica];
-  const html = tarjeta({ titulo: `Tirada de ${nombre}`, icono, subtitulo: `${nave.name}${datos.hab ? ` · habilidad +${datos.hab}` : ""}`, cuerpo, clase: t.exito ? "exito" : "fallo" });
+  const html = tarjeta({ titulo: `Tirada de ${nombre}`, icono, subtitulo: `${nave.name}${datos.bonus ? ` · ${datos.quien || "habilidad"} +${datos.bonus}` : ""}`, cuerpo, clase: t.exito ? "exito" : "fallo" });
   return publicarTirada(rolls, html, { actor: nave, flavor: `Tirada de ${nombre}` });
 }
 
@@ -294,6 +285,7 @@ export async function terminarCombate(nave = null) {
   }
   const pendiente = Math.min(2, antes + 1);
   await nave.update({ [`flags.${MODULE}.pendiente`]: pendiente, [`flags.${MODULE}.armasUsadas`]: false });
+  await nave.updateEmbeddedDocuments("Item", nave.items.filter((i) => i.type === "weapon").map((i) => ({ _id: i.id, [`flags.${MODULE}.vacia`]: true })));
   const clase = claseNave(nave);
   const coste = nave.items.filter((i) => i.type === "weapon").reduce((a, i) => a + precioReabastecer(i), 0) * clase;
   const consecuencia = pendiente === 1 ? "Si no reabasteces, tus tiradas de Batalla tendrán [-] en el siguiente combate." : "Si no reabasteces, la nave fallará automáticamente todas las tiradas de Batalla.";
@@ -318,14 +310,30 @@ export async function reabastecer(nave = null) {
     classes: ["mr-kit-dialogo", "macro-popup-dialog"],
     content: `<p>Reabastecer las armas en puerto cuesta, por arma y Clase ${clase}:</p><ul>${filas || "<li>La nave no tiene armas.</li>"}</ul><p><strong>Total: ${formatearCreditos(coste)}</strong></p>`,
     buttons: [
-      { label: "Reabastecer", action: "si", icon: "fa-solid fa-gun", default: true, callback: () => true },
+      { label: "Reabastecer todas", action: "si", icon: "fa-solid fa-gun", default: true, callback: () => true },
       { label: "Cancelar", action: "no", icon: "fa-solid fa-xmark", callback: () => false },
     ],
     rejectClose: false,
   });
   if (!ok) return;
   await nave.update({ [`flags.${MODULE}.pendiente`]: 0, [`flags.${MODULE}.armasUsadas`]: false });
+  await nave.updateEmbeddedDocuments("Item", armas.map((i) => ({ _id: i.id, [`flags.${MODULE}.vacia`]: false })));
   return publicarTirada(null, tarjeta({ titulo: "Armas reabastecidas", icono: "arma", subtitulo: nave.name, cuerpo: `<p>Coste: <strong>${formatearCreditos(coste)}</strong>. Las tiradas de Batalla vuelven a la normalidad.</p>`, clase: "exito" }), { actor: nave, flavor: "Reabastecer armas" });
+}
+
+/** Reabastece (rearma) una sola arma. Cuando no queda ninguna sin reabastecer, la nave recupera su Batalla normal. */
+export async function reabastecerArma(nave, arma) {
+  if (!nave || !arma) return;
+  if (!arma.flags?.[MODULE]?.vacia) return ui.notifications.info(`${arma.name} ya está reabastecida.`);
+  const coste = precioReabastecer(arma) * claseNave(nave);
+  await arma.update({ [`flags.${MODULE}.vacia`]: false });
+  const quedan = nave.items.some((i) => i.type === "weapon" && i.flags?.[MODULE]?.vacia);
+  if (!quedan) await nave.update({ [`flags.${MODULE}.pendiente`]: 0, [`flags.${MODULE}.armasUsadas`]: false });
+  return publicarTirada(null, tarjeta({
+    titulo: "Arma reabastecida", icono: "arma", subtitulo: nave.name,
+    cuerpo: `<p><strong>${arma.name}</strong>: ${formatearCreditos(coste)}.</p>${quedan ? "<p class=\"mr-kit-nota\">Quedan armas sin reabastecer.</p>" : "<p>Todas las armas están reabastecidas: las tiradas de Batalla vuelven a la normalidad.</p>"}`,
+    clase: "exito",
+  }), { actor: nave, flavor: "Reabastecer arma" });
 }
 
 /* ------------------------------------------------------------------ */

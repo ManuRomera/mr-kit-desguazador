@@ -1,5 +1,19 @@
 # Historial de cambios
 
+## 1.4.0 — 2026-11-02
+
+Disparar y rearmar como en la ficha de un personaje, y tripulación con personajes.
+
+### Corregido
+
+- **Se dispara pulsando el nombre del arma**, como en la ficha de un personaje (en la ficha de nave del sistema y en el Dossier). Se quita el botón aparte, y el nombre ya no se limita a mostrar la descripción.
+- **Rearmar las armas tiene sitio**: cada arma de la pestaña Armas muestra su estado (cargada o sin reabastecer) y, si está vacía, se rearma pulsando su icono; hay una barra con «Terminar el combate» y «Rearmar todas». Lo mismo en el Dossier.
+- La tarjeta del disparo explica de dónde sale la Batalla (p. ej. «32 = 30 de base + 2 de armas»): la cifra es la del manual, y lo que la sube es la habilidad de la tripulación.
+
+### Nuevo
+
+- **Tripulación con personajes**: arrastra un personaje a la ficha de la nave y se añade a la tripulación (con su puesto). Al disparar o tirar una Característica de la nave eliges la habilidad de **un** tripulante (Pilotaje, Entrenamiento militar…) y su bonificación se suma, como pide el manual. También se puede poner una bonificación a mano.
+
 ## 1.3.0 — 2026-11-02
 
 Las tiradas pasan a ser las del sistema mosh.

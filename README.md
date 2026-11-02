@@ -119,20 +119,24 @@ El *Informe tras la batalla* es la misma tirada de mantenimiento, tras un combat
 
 La macro *Megadaño* suma el MDMG a la nave y deja **una sola marca** en el registro, la del total, con su efecto (solo se aplica el efecto del total acumulado). El Casco ignora el MDMG inferior a su valor; si un impacto lo iguala o lo supera, el Casco queda destruido y la nave sufre el resto. Con 9 o más, la nave queda destruida.
 
+### Tripulación y habilidades
+
+**Arrastra un personaje a la ficha de la nave** y entra en su tripulación (aparece en la lista de tripulación, con su puesto). Al disparar o al tirar Propulsores, Batalla o Sistemas, el diálogo te deja elegir la habilidad de **un** tripulante, y su bonificación se suma a la Característica de la nave: así se llega por encima de la cifra base (Batalla 32 de la Patrullera = 30 de base + 2 de armas; con Mando +15, 47).
+
 ### Cómo se dispara con una nave
 
-En Mothership las armas de una nave **no se tiran una a una**: cada arma suma su bonificación a la Característica de **Batalla** y fija el MDMG de la nave, y en la fase de ataque la nave hace **una sola tirada de Batalla** contra su objetivo. Por eso cada arma tiene un botón **Disparar**, en la pestaña Armas de la ficha de nave y en el Dossier, pero todos hacen esa misma tirada:
+En Mothership las armas de una nave **no se tiran una a una**: cada arma suma su bonificación a la Característica de **Batalla** y fija el MDMG de la nave, y en la fase de ataque la nave hace **una sola tirada de Batalla** contra su objetivo. Por eso se dispara **pulsando el nombre del arma**, como en la ficha de un personaje (pestaña Armas de la ficha de nave y Dossier), y cualquier arma hace esa misma tirada:
 
 1. Marca con **T** el token de la nave objetivo.
-2. Pulsa **Disparar** en cualquier arma ofensiva (o usa la macro *Disparar con la nave*).
-3. Elige Normal, Ventaja o Desventaja. La Ventaja por Clase superior se añade sola.
+2. Pulsa el nombre de cualquier arma ofensiva (o usa la macro *Disparar con la nave*).
+3. Elige Normal, Ventaja o Desventaja y, si quieres, la habilidad de un tripulante. La Ventaja por Clase superior se añade sola.
 4. **Éxito:** la nave inflige su MDMG al objetivo (doble con crítico), que lo recibe con su Casco. **Fallo:** la nave sufre 1 MDMG (2 con crítico) y todos a bordo ganan 1 de Estrés.
 
 La tirada de Batalla del objetivo la hace su propia nave cuando dispara. Si no tienes permiso sobre la nave objetivo, la tarjeta lleva un botón para que quien la controla aplique el MDMG.
 
 ### Reabastecer las armas
 
-Tras un enfrentamiento en el que la nave ha usado sus armas hay que reabastecerlas en puerto. Pulsa **Terminar el combate** (Dossier, panel o macro) para anotarlo; si no reabasteces, la nave tira Batalla con [-] en el siguiente combate y falla automáticamente después. **Reabastecer armas** muestra el coste (por arma y Clase) y lo deja todo en orden.
+Tras un enfrentamiento en el que la nave ha usado sus armas hay que reabastecerlas en puerto. Pulsa **Terminar el combate** (barra de la pestaña Armas, Dossier, panel o macro) para anotarlo: las armas pasan a «sin reabastecer» (icono rojo junto a cada una); si no reabasteces, la nave tira Batalla con [-] en el siguiente combate y falla automáticamente después. Pulsa el icono rojo de un arma para rearmarla, o **Rearmar todas** para ver el coste total (por arma y Clase).
 
 ### Combate de naves (panel)
 

@@ -32,6 +32,13 @@ sistema `mosh` 0.6.1. Las páginas son las del PDF del manual; no aparecen en la
 | Billetes y fletes (cubierta interior) | Calculadora. |
 | Datos de naves, mejoras, armas, averías y tablas | Cotejados con el PDF. |
 
+## Revisión 1.4.0
+
+- **Disparar**: en Mothership se dispara pulsando el nombre del arma; el botón aparte se retiró.
+- **Reabastecer**: visible en la ficha (estado por arma, rearmar una a una o todas).
+- **Tripulación**: el manual dice que las naves pueden sumar la bonificación de habilidad de una persona (7). Los personajes se arrastran a la ficha y su habilidad se elige en la tirada.
+- **Batalla**: las cifras son las del manual (Patrullera 32 = 30 + 2 de armas); la tarjeta lo desglosa.
+
 ## Decisiones y límites
 
 - Las armas no se tiran una a una: el manual da una sola tirada de Batalla por nave (las armas suman a la Batalla). El botón Disparar de cada arma hace esa tirada.

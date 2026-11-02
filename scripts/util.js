@@ -240,6 +240,50 @@ export function marcarArmasUsadas(nave) {
   if (nave?.isOwner && !nave.flags?.[MODULE]?.armasUsadas) return nave.setFlag(MODULE, "armasUsadas", true);
 }
 
+/* ------------------------------------------------------------------ */
+/* Tripulación y habilidades                                           */
+/* ------------------------------------------------------------------ */
+/** Tripulantes de la nave enlazados a un personaje (objetos `crew` con el flag `actorUuid`, que se crean al arrastrar un personaje a la ficha). */
+export function tripulantes(nave) {
+  return nave.items
+    .filter((i) => i.type === "crew" && i.flags?.[MODULE]?.actorUuid)
+    .map((i) => ({ item: i, actor: fromUuidSync(i.flags[MODULE].actorUuid) }))
+    .filter((t) => t.actor);
+}
+
+/**
+ * Diálogo de una tirada de nave: tipo de tirada y la bonificación de habilidad de UNA persona de la tripulación
+ * (solo una persona puede aportarla). Devuelve `{ modo, bonus, quien }` o `null` si se cancela.
+ */
+export async function pedirTirada(nave, titulo, texto = "") {
+  const grupos = tripulantes(nave).map(({ actor }) => {
+    const habilidades = actor.items.filter((i) => i.type === "skill")
+      .map((h) => `<option value="${Number(h.system.bonus) || 0}|${foundry.utils.escapeHTML(`${actor.name} · ${h.name}`)}">${foundry.utils.escapeHTML(h.name)} (+${Number(h.system.bonus) || 0})</option>`).join("");
+    return habilidades ? `<optgroup label="${foundry.utils.escapeHTML(actor.name)}">${habilidades}</optgroup>` : "";
+  }).join("");
+
+  return DialogV2.wait({
+    window: { title: titulo },
+    classes: ["mr-kit-dialogo", "macro-popup-dialog"],
+    content: `${texto ? `<p>${texto}</p>` : ""}
+      <div class="form-group"><label>Tipo de tirada</label>
+        <select name="modo"><option value="normal">Normal</option><option value="ventaja">Ventaja [+]</option><option value="desventaja">Desventaja [-]</option></select></div>
+      ${grupos ? `<div class="form-group"><label>Habilidad de la tripulación (solo una persona la aporta)</label>
+        <select name="hab"><option value="">Ninguna</option>${grupos}</select></div>` : ""}
+      <div class="form-group"><label>${grupos ? "O una bonificación a mano" : "Bonificación de habilidad (solo una persona la aporta)"}</label>
+        <input type="number" name="manual" value="0" min="0" max="30"></div>`,
+    buttons: [{
+      label: "Tirar", action: "tirar", icon: "fa-solid fa-dice-d20", default: true,
+      callback: (e, b) => {
+        const f = b.form.elements;
+        const [bonus, quien] = f.hab?.value ? f.hab.value.split("|") : [Number(f.manual.value) || 0, ""];
+        return { modo: f.modo.value, bonus: Number(bonus) || 0, quien };
+      },
+    }],
+    rejectClose: false,
+  });
+}
+
 /** Armas «solo defensivas»: no infligen MDMG por sí solas. */
 export const esArmaDefensiva = (item) => Boolean(item?.flags?.[MODULE]?.defensiva);
 

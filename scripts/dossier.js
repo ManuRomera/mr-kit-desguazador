@@ -1,7 +1,7 @@
 /**
  * Dossier de nave: panel de consulta y control rápido del Kit del Desguazador (ApplicationV2).
  */
-import { MODULE, mdmgTotal, ajustarRecurso, valorMDMG, flagsNave, efectoMegadanio, armasPendientes } from "./util.js";
+import { MODULE, mdmgTotal, ajustarRecurso, valorMDMG, flagsNave, efectoMegadanio, armasPendientes, tripulantes } from "./util.js";
 import { ConAccesibilidad, guardarLocal, recordarLocal } from "./accesibilidad.js";
 import { sincronizarNave } from "./sincronizar.js";
 import * as macros from "./macros.js";
@@ -31,6 +31,7 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
       reparar: DossierNave.reparar,
       reabastecer: DossierNave.reabastecer,
       terminar: DossierNave.terminar,
+      rearmar: DossierNave.rearmar,
       iniciales: DossierNave.iniciales,
       sincronizar: DossierNave.sincronizar,
       disparar: DossierNave.disparar,
@@ -91,7 +92,8 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
       actor,
       sistema,
       flags,
-      armas: armas.map((a) => ({ id: a.id, nombre: a.name, bonus: a.system.bonus ?? 0, img: a.img, defensiva: Boolean(a.flags?.[MODULE]?.defensiva) })),
+      armas: armas.map((a) => ({ id: a.id, nombre: a.name, bonus: a.system.bonus ?? 0, img: a.img, defensiva: Boolean(a.flags?.[MODULE]?.defensiva), vacia: Boolean(a.flags?.[MODULE]?.vacia) })),
+      tripulacion: tripulantes(actor).map((t) => ({ nombre: t.actor.name, puesto: t.item.system.job, img: t.actor.img })),
       modulos: modulos.map((m) => ({ id: m.id, nombre: m.name, rasgo: m.system.feature ?? "", img: m.img })),
       hangar: hangar.map((h) => ({ id: h.id, nombre: h.name, cantidad: h.system.quantity ?? 1, img: h.img })),
       averiasMenores: averias.filter((a) => !a.system.major).map((a) => ({ id: a.id, nombre: nombreAveria(a) })),
@@ -156,6 +158,7 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
   static iniciales() { return macros.averiasIniciales(this.actor); }
   static reabastecer() { return macros.reabastecer(this.actor); }
   static terminar() { return macros.terminarCombate(this.actor); }
+  static rearmar(event, target) { return macros.reabastecerArma(this.actor, this.actor.items.get(target.dataset.itemId)); }
 
   static async sincronizar() {
     const cambios = await sincronizarNave(this.actor);

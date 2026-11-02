@@ -12,10 +12,20 @@
  */
 import {
   claseNave, mdmgTotal, valorMDMG, aplicarImpacto, textoImpacto, tirarSistema, tirarExpresionMDMG,
-  efectoMegadanio, publicarTirada, tarjeta, filaDado, esArmaDefensiva, elegirModo, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
+  efectoMegadanio, publicarTirada, tarjeta, filaDado, esArmaDefensiva, pedirTirada, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
 } from "./util.js";
 
 const ENLACE_ESTRES = "@UUID[Compendium.mosh.macros_triggered_1e.dvJR9DYXI2kV0BbR]{+1 Estrés}";
+
+/** «Batalla 32 = 30 base + 2 de armas» a partir de los datos de la nave. */
+function desgloseBatalla(nave) {
+  const total = Number(nave.system.stats.battle.value) || 0;
+  const base = Number(nave.flags?.["mr-kit-desguazador"]?.batallaBase);
+  const armas = nave.items.filter((i) => i.type === "weapon").reduce((a, i) => a + (Number(i.system.bonus) || 0), 0);
+  const cazas = Math.min(10, nave.items.filter((i) => i.flags?.["mr-kit-desguazador"]?.caza).reduce((a, i) => a + (Number(i.system.quantity) || 1), 0));
+  if (!Number.isFinite(base) || base + armas + cazas !== total) return `Batalla ${total}`;
+  return `Batalla ${total} = ${base} de base + ${armas} de armas${cazas ? ` + ${cazas} de cazas` : ""}`;
+}
 
 /** Nave marcada como objetivo (T), si es una nave. */
 export const objetivoMarcado = () => [...game.user.targets].map((t) => t.actor).find((a) => a?.type === "ship") ?? null;
@@ -38,15 +48,18 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
   const soloDefensivas = !sinArmas && dmg === "0";
   const diff = claseNave(nave) - claseNave(objetivo);
 
-  let modo = await elegirModo(`Disparo · ${nave.name}`, `Tirada de Batalla contra ${objetivo.name}${diff === 1 ? " (tienes [+] por Clase superior)" : ""}.`);
-  if (!modo) return;
+  const pedida = await pedirTirada(nave, `Disparo · ${nave.name}`, `Tirada de Batalla contra ${objetivo.name}${diff === 1 ? " (tienes [+] por Clase superior)" : ""}.`);
+  if (!pedida) return;
+  let modo = pedida.modo;
   if (diff === 1 && modo === "normal") modo = "ventaja";
   modo = modoConPenalizacion(nave, modo); // sin reabastecer tras el combate anterior: [-]
 
+  // Batalla de la nave (la base ya incluye las armas y los cazas) más la habilidad de un tripulante.
+  const valorBatalla = (Number(nave.system.stats.battle.value) || 0) + pedida.bonus;
   const rolls = [];
   let tirada = { total: null, exito: false, critico: false, dados: [] };
   if (!sinArmas) {
-    tirada = await tirarSistema(nave, { modo, objetivo: Number(nave.system.stats.battle.value) || 0 });
+    tirada = await tirarSistema(nave, { modo, objetivo: valorBatalla });
     rolls.push(tirada.roll);
   }
 
@@ -65,9 +78,10 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
   const lineas = [];
   const etiqueta = sinArmas
     ? (sinReabastecer ? "Armas sin reabastecer: falla automáticamente" : "Sin armas operativas: falla automáticamente")
-    : `${tirada.exito ? (tirada.critico ? "ÉXITO CRÍTICO" : "ÉXITO") : tirada.critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(tirada.total).padStart(2, "0")} / ${nave.system.stats.battle.value}`;
+    : `${tirada.exito ? (tirada.critico ? "ÉXITO CRÍTICO" : "ÉXITO") : tirada.critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(tirada.total).padStart(2, "0")} / ${valorBatalla}`;
   if (!sinArmas) lineas.push(`<p class="mr-kit-dados">${filaDado(tirada.dados)}</p>`);
   lineas.push(`<p class="mr-kit-resultado ${tirada.exito ? "ok" : "mal"}">${etiqueta}</p>`);
+  lineas.push(`<p class="mr-kit-nota">${desgloseBatalla(nave)}${pedida.bonus ? ` + habilidad ${pedida.quien || ""} (+${pedida.bonus}) = ${valorBatalla}` : ""}.</p>`);
   if (arma) lineas.push(`<p>Dispara <strong>${arma.name}</strong> (+${arma.system.bonus ?? 0}, ya incluido en la Batalla de la nave).</p>`);
   if (armasPendientes(nave) === 1) lineas.push(`<p class="mr-kit-efecto">Armas sin reabastecer desde el combate anterior: tirada con [-].</p>`);
   if (defensaLaser && armas.some((a) => a.flags?.["mr-kit-desguazador"]?.mdmgExtra)) lineas.push(`<p class="mr-kit-nota">${objetivo.name} lleva un Sistema de defensa láser: ignora la bonificación de MDMG de los lanzamisiles.</p>`);
