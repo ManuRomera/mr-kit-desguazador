@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" font-family="Helvetica, Arial, sans-serif">
+<rect width="1200" height="720" fill="#0c0d10"/>
+<text x="40" y="58" font-size="34" font-weight="700" fill="#ececee" letter-spacing="2">NAVE DE EXPLORACIÓN</text>
+<text x="40" y="88" font-size="19" fill="#9a9aa0">Plano esquemático de cubiertas · Clase 5 · Salto 4 · 260 m</text>
+<path d="M160 124 L1050 124 L1190 370 L1050 616 L160 616 Z" fill="#14161b" stroke="#ececee" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M160 190 L90 160 L90 580 L160 550 Z" fill="#14161b" stroke="#ececee" stroke-width="6" stroke-linejoin="round"/>
+    <circle cx="90" cy="370" r="22" fill="#d94a3d"/><path d="M236 124 L250 92 L264 124 Z" fill="#ececee"/><path d="M946 124 L960 92 L974 124 Z" fill="#ececee"/>
+<rect x="190" y="150" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="218" cy="178" r="17" fill="#d94a3d"/><text x="218" y="185" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">1</text>
+      <text x="206" y="224" font-size="21" fill="#ececee">Esclusa</text><rect x="358.8" y="150" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="386.8" cy="178" r="17" fill="#d94a3d"/><text x="386.8" y="185" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">2</text>
+      <text x="374.8" y="224" font-size="21" fill="#ececee">Módulo de</text><text x="374.8" y="251" font-size="21" fill="#ececee">mando</text><rect x="527.6" y="150" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="555.6" cy="178" r="17" fill="#d94a3d"/><text x="555.6" y="185" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">3</text>
+      <text x="543.6" y="224" font-size="21" fill="#ececee">Módulos</text><text x="543.6" y="251" font-size="21" fill="#ececee">habitables</text><rect x="696.4000000000001" y="150" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="724.4000000000001" cy="178" r="17" fill="#d94a3d"/><text x="724.4000000000001" y="185" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">4</text>
+      <text x="712.4000000000001" y="224" font-size="21" fill="#ececee">Hangar</text><rect x="865.2" y="150" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="893.2" cy="178" r="17" fill="#d94a3d"/><text x="893.2" y="185" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">5</text>
+      <text x="881.2" y="224" font-size="21" fill="#ececee">Criocámara</text><text x="881.2" y="251" font-size="21" fill="#ececee">de la</text><text x="881.2" y="278" font-size="21" fill="#ececee">tripulación</text><rect x="190" y="377" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="218" cy="405" r="17" fill="#d94a3d"/><text x="218" y="412" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">6</text>
+      <text x="206" y="451" font-size="21" fill="#ececee">Criocubiertas</text><rect x="358.8" y="377" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="386.8" cy="405" r="17" fill="#d94a3d"/><text x="386.8" y="412" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">7</text>
+      <text x="374.8" y="451" font-size="21" fill="#ececee">Laboratorios</text><text x="374.8" y="478" font-size="21" fill="#ececee">y Enfermería</text><rect x="527.6" y="377" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="555.6" cy="405" r="17" fill="#d94a3d"/><text x="555.6" y="412" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">8</text>
+      <text x="543.6" y="451" font-size="21" fill="#ececee">Cubiertas de</text><text x="543.6" y="478" font-size="21" fill="#ececee">carga</text><rect x="696.4000000000001" y="377" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="724.4000000000001" cy="405" r="17" fill="#d94a3d"/><text x="724.4000000000001" y="412" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">9</text>
+      <text x="712.4000000000001" y="451" font-size="21" fill="#ececee">Soporte</text><text x="712.4000000000001" y="478" font-size="21" fill="#ececee">vital</text><rect x="865.2" y="377" width="154.8" height="213" rx="14" fill="#1b1e24" stroke="#5b6068" stroke-width="3"/>
+      <circle cx="893.2" cy="405" r="17" fill="#d94a3d"/><text x="893.2" y="412" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">10</text>
+      <text x="881.2" y="451" font-size="21" fill="#ececee">Reactor</text>
+<text x="40" y="680" font-size="16" fill="#6f6f76">Esquema orientativo dibujado para el módulo; los triángulos son los Anclajes de arma. El texto de cada cubierta está en la pestaña Notas.</text>
+</svg>

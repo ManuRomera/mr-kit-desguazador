@@ -12,10 +12,8 @@
  */
 import {
   claseNave, mdmgTotal, valorMDMG, aplicarImpacto, textoImpacto, tirarSistema, tirarExpresionMDMG,
-  efectoMegadanio, publicarTirada, tarjeta, filaDado, esArmaDefensiva, pedirTirada, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
+  efectoMegadanio, publicarTirada, tarjeta, resultadoHtml, botonesEstres, esArmaDefensiva, pedirTirada, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
 } from "./util.js";
-
-const ENLACE_ESTRES = "@UUID[Compendium.mosh.macros_triggered_1e.dvJR9DYXI2kV0BbR]{+1 Estrés}";
 
 /** «Batalla 32 = 30 base + 2 de armas» a partir de los datos de la nave. */
 function desgloseBatalla(nave) {
@@ -76,11 +74,9 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
   const propio = !tirada.exito && !soloDefensivas ? (tirada.critico ? 2 : 1) : 0;
 
   const lineas = [];
-  const etiqueta = sinArmas
-    ? (sinReabastecer ? "Armas sin reabastecer: falla automáticamente" : "Sin armas operativas: falla automáticamente")
-    : `${tirada.exito ? (tirada.critico ? "ÉXITO CRÍTICO" : "ÉXITO") : tirada.critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(tirada.total).padStart(2, "0")} / ${valorBatalla}`;
-  if (!sinArmas) lineas.push(`<p class="mr-kit-dados">${filaDado(tirada.dados)}</p>`);
-  lineas.push(`<p class="mr-kit-resultado ${tirada.exito ? "ok" : "mal"}">${etiqueta}</p>`);
+  lineas.push(sinArmas
+    ? `<p>${sinReabastecer ? "Armas sin reabastecer" : "Sin armas operativas"}: la nave falla automáticamente.</p>`
+    : `<p>Has sacado <strong>${String(tirada.total).padStart(2, "0")}</strong> y necesitabas menos de <strong>${valorBatalla}</strong> (Batalla).</p>`);
   lineas.push(`<p class="mr-kit-nota">${desgloseBatalla(nave)}${pedida.bonus ? ` + habilidad ${pedida.quien || ""} (+${pedida.bonus}) = ${valorBatalla}` : ""}.</p>`);
   if (arma) lineas.push(`<p>Dispara <strong>${arma.name}</strong> (+${arma.system.bonus ?? 0}, ya incluido en la Batalla de la nave).</p>`);
   if (armasPendientes(nave) === 1) lineas.push(`<p class="mr-kit-efecto">Armas sin reabastecer desde el combate anterior: tirada con [-].</p>`);
@@ -110,12 +106,16 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
     const i = await aplicarImpacto(nave, propio);
     lineas.push(`<p>Por el fallo, <strong>${nave.name}</strong> sufre <strong>${propio}</strong> MDMG. ${textoImpacto(i)}</p>`);
   }
-  if (!tirada.exito) lineas.push(`<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong> ${ENLACE_ESTRES}${tirada.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`);
+  if (!tirada.exito) lineas.push(`<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong>${tirada.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`);
   lineas.push(tiene(nave, "Cañón de riel")
     ? '<p class="mr-kit-nota">El cañón de riel puede disparar a alcance de detección; el resto de armas, solo a disparo o contacto.</p>'
     : '<p class="mr-kit-nota">Solo a alcance de disparo o de contacto. La tirada de Batalla del objetivo la hace su propia nave cuando dispara.</p>');
 
   await marcarArmasUsadas(nave);
-  const html = tarjeta({ titulo: "Disparo", icono: "combate", subtitulo: `${nave.name} → ${objetivo.name}`, cuerpo: lineas.join(""), pie: boton, clase: tirada.exito ? "exito" : "fallo" });
+  const html = tarjeta({
+    titulo: "Disparo", icono: "combate", subtitulo: `${nave.name} → ${objetivo.name}`,
+    resultado: sinArmas ? resultadoHtml({ exito: false }, "¡FALLO AUTOMÁTICO!") : resultadoHtml(tirada), cuerpo: lineas.join(""), dados: sinArmas ? "" : tirada.dadosHtml,
+    pie: boton + (tirada.exito ? "" : botonesEstres(nave, { critico: tirada.critico })), clase: tirada.exito ? "exito" : "fallo",
+  });
   return publicarTirada(rolls, html, { actor: nave, flavor: "Disparo" });
 }

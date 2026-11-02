@@ -1,6 +1,7 @@
 // Datos del Kit del Desguazador (Shipbreakers Toolkit) para Mothership.
 // Genera _data/*.json a partir de las tablas del manual en español.
 import fs from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { EXTRA, DIARIOS_NUEVOS, PAGINAS_EXTRA } from "./textos.mjs";
 
 /* ------------------------------------------------------------------ */
@@ -821,6 +822,7 @@ function naveDoc(ship) {
       make: `${ship.modelo}\n${ship.tipo} · Salto ${ship.salto} · Clase ${ship.clase} · Eslora ${ship.eslora}\nCoste: ${ship.coste} · Casco: ${ship.casco}`,
       transponder: true,
       runSetup: false,
+      images: { layout: `modules/mr-kit-desguazador/assets/planos/${ship.clave}.webp`, beauty: `modules/mr-kit-desguazador/assets/naves/${ship.clave}.webp` },
       stats: stats(ship),
       supplies: {
         hull: { value: ship.casco, max: ship.casco, 75: 0, 50: 0, 25: 0 },
@@ -1021,10 +1023,10 @@ export const DIARIOS = [
             "Las 100 averías de mantenimiento del d100 (69 menores y 31 mayores) como objetos <em>repair</em>.",
             "Tablas de averías, megadaño, señales de socorro, quiebra, contrabando y restos valiosos.",
             "Diarios con las reglas del manual, los costes de viaje y los ejemplos de juego.",
-            "Macros y ventanas: dossier de nave, combate naval, calculadora de viaje y billetes, y las tiradas de mantenimiento, megadaño, socorro y quiebra.",
+            "Una ficha de nave propia con las tiradas, el disparo, el reabastecimiento y el megadaño integrados, la calculadora de viaje y billetes, y las macros de mantenimiento, socorro, quiebra y moral.",
           ]) +
           h3("Cómo empezar") +
-          p("Abre el compendio <strong>Naves</strong> e importa la nave que quieras. En la ficha de nave del sistema <em>mosh</em> aparece una pestaña <strong>Dossier</strong> con las herramientas del módulo. También puedes usar las macros del compendio <strong>Macros del Kit del Desguazador</strong> desde la barra de acceso rápido.") +
+          p("Abre el compendio <strong>Naves</strong> e importa la nave que quieras. La nave se abre con la ficha del Kit: pulsa <strong>Propulsores, Batalla o Sistemas</strong> para tirar, el <strong>nombre de un arma</strong> para disparar y arrastra a los personajes a la ficha para añadirlos a la tripulación. También puedes usar las macros del compendio <strong>Macros del Kit del Desguazador</strong> desde la barra de acceso rápido.") +
           p("Cuando añadas armas, mejoras o naves de Clase 0 a una nave del Kit, el módulo recalcula sus cifras (anclajes, mejoras, Batalla, MDMG y los efectos de las mejoras). Puedes desactivarlo en los ajustes del módulo."),
       },
     ],
@@ -1371,9 +1373,9 @@ function diarioDoc(d, i) {
 /* Macros                                                              */
 /* ------------------------------------------------------------------ */
 export const MACROS = [
-  { clave: "dossier", nombre: "Abrir dossier de nave", img: "modules/mr-kit-desguazador/assets/iconos/dossier.webp",
+  { clave: "dossier", nombre: "Abrir ficha de la nave", img: "modules/mr-kit-desguazador/assets/iconos/dossier.webp",
     comando: "game.mrKit.macros.abrirDossier();",
-    d: "Abre el dossier de la nave seleccionada o controlada." },
+    d: "Abre la ficha de la nave seleccionada o controlada, con todo el Kit integrado." },
   { clave: "mantenimiento", nombre: "Tirada de mantenimiento (SBT)", img: "modules/mr-kit-desguazador/assets/iconos/averia.webp",
     comando: "game.mrKit.macros.mantenimiento();",
     d: "Tirada de Sistemas contra el valor de la nave. Si falla, tira en la tabla de averías del Kit del Desguazador." },
@@ -1404,9 +1406,6 @@ export const MACROS = [
   { clave: "fin-combate", nombre: "Terminar el combate", img: "modules/mr-kit-desguazador/assets/iconos/combate.webp",
     comando: "game.mrKit.macros.terminarCombate();",
     d: "Anota si la nave ha usado sus armas y hay que reabastecerlas (si no, [-] en Batalla en el siguiente combate)." },
-  { clave: "combate", nombre: "Combate de naves", img: "modules/mr-kit-desguazador/assets/iconos/combate.webp",
-    comando: "game.mrKit.macros.combate();",
-    d: "Abre el panel de combate nave contra nave." },
   { clave: "reparar", nombre: "Reparar casco y megadaño", img: "modules/mr-kit-desguazador/assets/iconos/taller.webp",
     comando: "game.mrKit.macros.reparar();",
     d: "Calcula el coste y el tiempo de reparar el casco y el MDMG de la nave." },
@@ -1480,4 +1479,4 @@ async function escribir() {
   console.log(`Total: ${NAVES.length} naves, ${MEJORAS.length} mejoras, ${ARMAS.length} armas, ${CLASE0.length} naves Clase 0, ${AVERIAS.length} averías, ${TABLAS.length} tablas, ${DIARIOS.length} diarios, ${MACROS.length} macros.`);
 }
 
-escribir().catch((e) => { console.error(e); process.exit(1); });
+if (import.meta.url === pathToFileURL(process.argv[1]).href) escribir().catch((e) => { console.error(e); process.exit(1); });

@@ -5,7 +5,7 @@
 import { dispararNave } from "./ataque.js";
 import { MODULE } from "./util.js";
 import {
-  aviso, elegirNave, elegirModo, pedirTirada, tirarSistema, publicarTirada, filaDado, tarjeta,
+  aviso, elegirNave, elegirModo, pedirTirada, tirarSistema, publicarTirada, filaDado, tarjeta, resultadoHtml, botonesEstres,
   mdmgTotal, armasPendientes, modoConPenalizacion, precioReabastecer, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
   claseNave, formatearCreditos,
 } from "./util.js";
@@ -45,8 +45,9 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
   if (caracteristica === "thrusters" && efecto === 3) return ui.notifications.warn("Sin navegación (MDMG 3): la nave no puede hacer tiradas de Propulsores.");
   const sinArmas = caracteristica === "battle" && (efecto === 2 || armasPendientes(nave) >= 2);
 
-  const datos = await pedirTirada(nave, `Tirada de ${nombre} · ${nave.name}`);
+  const datos = await pedirTirada(nave, `Tirada de ${nombre} · ${nave.name}`, "", { combustible: caracteristica === "thrusters" });
   if (!datos) return;
+  if (datos.quemar) await nave.update({ "system.supplies.fuel.value": Math.max(0, (Number(nave.system.supplies.fuel.value) || 0) - datos.quemar) });
 
   const valor = (Number(nave.system.stats[caracteristica].value) || 0) + datos.bonus;
   const modo = caracteristica === "battle" ? modoConPenalizacion(nave, datos.modo) : datos.modo;
@@ -57,12 +58,18 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
     rolls.push(t.roll);
   }
 
-  const etiqueta = sinArmas ? "Falla automáticamente" : `${t.exito ? (t.critico ? "ÉXITO CRÍTICO" : "ÉXITO") : t.critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(t.total).padStart(2, "0")} / ${valor}`;
-  let cuerpo = `${sinArmas ? "" : `<p class="mr-kit-dados">${filaDado(t.dados)}</p>`}<p class="mr-kit-resultado ${t.exito ? "ok" : "mal"}">${etiqueta}</p>`;
-  if (sinArmas) cuerpo += `<p class="mr-kit-nota">${efecto === 2 ? "Armas inactivas (MDMG 2)" : "Armas sin reabastecer"}: la nave falla todas las tiradas de Batalla.</p>`;
-  if (!t.exito) cuerpo += `<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong> @UUID[Compendium.mosh.macros_triggered_1e.dvJR9DYXI2kV0BbR]{+1 Estrés}${t.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`;
+  const fallo = sinArmas || !t.exito;
+  let cuerpo = sinArmas
+    ? `<p>${efecto === 2 ? "Armas inactivas (MDMG 2)" : "Armas sin reabastecer"}: la nave falla todas las tiradas de Batalla.</p>`
+    : `<p>Has sacado <strong>${String(t.total).padStart(2, "0")}</strong> y necesitabas menos de <strong>${valor}</strong> (${nombre}${datos.bonus ? ` + ${datos.bonus} de ${datos.quien || "habilidad"}` : ""}).</p>`;
+  if (datos.quemar) cuerpo += `<p class="mr-kit-nota">Combustible quemado: ${datos.quemar}. Quien gasta más tira con [+].</p>`;
+  if (fallo) cuerpo += `<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong>${t.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`;
   const icono = { thrusters: "viaje", battle: "combate", systems: "averia" }[caracteristica];
-  const html = tarjeta({ titulo: `Tirada de ${nombre}`, icono, subtitulo: `${nave.name}${datos.bonus ? ` · ${datos.quien || "habilidad"} +${datos.bonus}` : ""}`, cuerpo, clase: t.exito ? "exito" : "fallo" });
+  const html = tarjeta({
+    titulo: `Tirada de ${nombre}`, icono, subtitulo: nave.name,
+    resultado: sinArmas ? resultadoHtml({ exito: false }, "¡FALLO AUTOMÁTICO!") : resultadoHtml(t), cuerpo, dados: sinArmas ? "" : t.dadosHtml,
+    pie: fallo ? botonesEstres(nave, { critico: t.critico }) : "", clase: t.exito ? "exito" : "fallo",
+  });
   return publicarTirada(rolls, html, { actor: nave, flavor: `Tirada de ${nombre}` });
 }
 
@@ -121,7 +128,7 @@ export async function megadanio(nave = null) {
     titulo: "Megadaño", icono: "megadanio",
     subtitulo: `${nave.name} · ${cantidad} MDMG${/d/.test(expr) ? ` (${expr})` : ""}`,
     cuerpo: `<p>${textoImpacto(impacto)}</p>
-      ${impacto.absorbido ? "" : `<p class="mr-kit-resultado mal">${String(impacto.total).padStart(2, "0")}</p><p>${efecto}</p>`}
+      ${impacto.absorbido ? "" : `<div class="mr-kit-titular mal"><strong>MDMG ${impacto.total}</strong></div><p>${efecto}</p>`}
       ${impacto.total >= 9 ? `<p class="mr-kit-critico"><strong>¡La nave queda destruida!</strong></p>` : ""}
       <p class="mr-kit-nota">Solo se aplica el efecto del total acumulado. Recibir más megadaño suma al registro; hay que ir a puerto para borrarlo.</p>`,
     clase: "fallo",
@@ -171,16 +178,17 @@ export async function moral(mdmgEnemigo = null) {
   if (!modo) return;
 
   const actor = game.actors.find((a) => a.type === "ship") ?? game.actors.contents[0];
-  const { roll, total, exito, dados } = await tirarSistema(actor, { dado: "1d10", modo, aim: "high", objetivo: mdmg, comparacion: ">=", criticos: false });
+  const { roll, total, exito, dadosHtml } = await tirarSistema(actor, { dado: "1d10", modo, aim: "high", objetivo: mdmg, comparacion: ">=", criticos: false });
   const ofrece = !exito;
 
   const html = tarjeta({
     titulo: "Tirada de moral",
     icono: "moral",
     subtitulo: `MDMG enemigo ${mdmg}`,
-    cuerpo: `<p class="mr-kit-dados">${filaDado(dados)}</p>
-      <p class="mr-kit-resultado ${ofrece ? "ok" : "mal"}">${ofrece ? "Ofrece un alto el fuego" : "Sigue combatiendo"} · ${total}</p>
+    resultado: resultadoHtml({ exito: ofrece }, ofrece ? "¡ALTO EL FUEGO!" : "SIGUE COMBATIENDO"),
+    cuerpo: `<p>Has sacado <strong>${total}</strong> contra un MDMG de <strong>${mdmg}</strong>.</p>
       <p class="mr-kit-nota">Si saca menos que su MDMG actual, puede enviar una llamada para ofrecer un alto el fuego y reanudar las negociaciones.</p>`,
+    dados: dadosHtml,
     clase: ofrece ? "exito" : "fallo",
   });
   return publicarTirada(roll, html, { flavor: "Moral" });
@@ -261,7 +269,7 @@ export async function reparar(nave = null) {
         ${marcado.mayores && mayores.length ? `<li>Averías mayores resueltas: <strong>${mayores.length}</strong> (${mayores.map((i) => i.name.replace(/^\d+ · /, "")).join("; ")}).</li>` : ""}
         ${marcado.menores && menores.length ? `<li>Averías menores resueltas: <strong>${menores.length}</strong> (unos 2d10 días de trabajo).</li>` : ""}
       </ul>
-      ${nMayores ? `<p class="mr-kit-resultado mal">${formatearCreditos(coste)}</p>
+      ${nMayores ? `<div class="mr-kit-titular mal"><strong>${formatearCreditos(coste)}</strong></div>
         <p>${nMayores}d5 MCR = <strong>${costeRoll.total}</strong> MCR × Clase ${clase}. Llevan de unos meses a un año, según la gravedad y la disponibilidad de piezas y mano de obra.</p>` : ""}`,
     clase: "exito",
   });
@@ -275,11 +283,12 @@ export async function reparar(nave = null) {
  * Tras un enfrentamiento en el que hayas usado las armas de la nave debes reabastecerte (en puerto). Si no lo haces, tus
  * tiradas de Batalla tienen [-] en el siguiente combate; después, fallas automáticamente todas las tiradas de Batalla.
  */
-export async function terminarCombate(nave = null) {
+export async function terminarCombate(nave = null, { auto = false } = {}) {
   nave ??= await elegirNave();
   if (!nave) return;
   const usadas = Boolean(nave.flags?.[MODULE]?.armasUsadas);
   const antes = armasPendientes(nave);
+  if (!usadas && auto) return; // al cerrar el combate del Combat Tracker, las naves que no dispararon no dicen nada
   if (!usadas) {
     return publicarTirada(null, tarjeta({ titulo: "Fin del combate", icono: "combate", subtitulo: nave.name, cuerpo: "<p>La nave no ha usado sus armas: no hace falta reabastecer.</p>" }), { actor: nave });
   }
@@ -373,6 +382,6 @@ export async function disparar(nave = null) {
   return dispararNave(nave);
 }
 
-export const abrirDossier = () => game.mrKit.apps.abrirDossier();
+/** Abre la ficha de la nave (antes era el «dossier»; las macros antiguas siguen funcionando). */
+export const abrirDossier = async () => (await elegirNave())?.sheet.render({ force: true });
 export const viaje = () => game.mrKit.apps.abrirViaje();
-export const combate = () => game.mrKit.apps.abrirCombate();

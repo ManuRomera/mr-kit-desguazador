@@ -1,5 +1,23 @@
 # Historial de cambios
 
+## 1.5.0 — 2026-11-02
+
+Todo en la ficha de la nave, con el aspecto de la ficha de personaje.
+
+### Cambiado
+
+- **Ficha de nave propia** (parte de la del sistema y conserva sus objetos, quiebra y megadaño): cabecera y Características como las del personaje, tripulación en un panel negro, megadaño con sus nueve efectos siempre a la vista, botones de Mantenimiento, Socorro, Moral enemiga, Reparar, Viaje y Plano de cubierta, y las pestañas Armas, Mejoras, Carga, Reparaciones y Notas.
+- **Sin ventanas aparte**: desaparecen el Dossier y el panel de combate. Propulsores, Batalla y Sistemas se tiran desde la ficha, se dispara con el nombre del arma, el reabastecimiento se ve arma a arma, y el botón *Terminar el combate* ya no hace falta: al cerrar el combate del Combat Tracker las naves que dispararon quedan «sin reabastecer» (el aviso de la pestaña Armas lo ofrece si no usas el Combat Tracker).
+- **Sin barra de desplazamiento** en la ventana ni solapes (el botón del plano de cubierta ya no pisa las pestañas); las listas largas se desplazan dentro de su pestaña. Ajuste nuevo «Ficha de nave del Kit» para volver a la del sistema.
+- **Tarjetas del chat con el estilo del sistema y de MR- Mothership en español**: titular, dados desplegables y botones negros.
+- **Propulsores:** el diálogo permite indicar el combustible que quemas (se descuenta).
+- La macro *Abrir dossier de nave* pasa a *Abrir ficha de la nave*; la macro *Combate de naves* desaparece.
+
+### Nuevo
+
+- **Botones de Estrés y Pánico en la tarjeta** cuando una tirada de la nave falla: el Guardián los aplica a toda la tripulación (los personajes arrastrados a la ficha) y cada jugador se aplica el suyo. Cada botón se desactiva al usarlo.
+- **Planos de cubierta distintos por nave**: antes todas llevaban el plano por defecto del sistema. Cada una trae ahora un plano esquemático propio (cubiertas numeradas y Anclajes), que se abre como imagen. Las naves ya importadas se actualizan solas.
+
 ## 1.4.0 — 2026-11-02
 
 Disparar y rearmar como en la ficha de un personaje, y tripulación con personajes.

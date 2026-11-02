@@ -13,17 +13,17 @@ sistema `mosh` 0.6.1. Las páginas son las del PDF del manual; no aparecen en la
 | **Efectos de las averías** (41): −2d10 Propulsores (24), −1d10 Batalla (28), −1d10 Sistemas (61), tripulación a la mitad (90), −1 Casco y −1 Mejora (93) | **Corregido:** antes solo se añadía el objeto sin efecto. Ahora se tiran los dados al añadirla, se aplican a la nave y se quitan al repararla. Las demás averías son de texto (mantenimiento con [-], aceleración lenta, etc.) y las aplica el Guardián. |
 | Casco: ignora el MDMG menor que su valor; con un impacto igual o mayor se destruye y pasa el resto (36) | `aplicarImpacto`. |
 | Megadaño: se suma al acumulado, se marca el total y solo se aplica su efecto (36, 38) | **Corregido en 1.3.0:** una sola marca en el registro. |
-| Fase de movimiento: evadir con coste mínimo por alcance, [+] a quien gasta más, crítico avanza, fallo crítico regala el avance, mantener el rumbo (35) | Panel de combate. |
-| Fase de ataque: una tirada de Batalla por nave y ronda; éxito inflige MDMG (doble con crítico), fallo da 1 o 2 MDMG propios; sin armas o desconectadas fallan solas y el rival acierta solo (36) | Panel y botón Disparar. **Corregido:** disparar ahora se hace desde las armas, con una sola tirada. |
-| Clase: [+] contra naves 1 Clase inferior; 2 o más Clases, invencible (36) | Panel y Disparar. |
-| Moral: 1d10 contra el MDMG actual (36) | Macro y panel. |
+| Fase de movimiento: evadir con coste mínimo por alcance, [+] a quien gasta más, crítico avanza, fallo crítico regala el avance, mantener el rumbo (35) | Tirada de Propulsores de la ficha con el combustible quemado (descuenta; la Ventaja por gastar más la decide la mesa). |
+| Fase de ataque: una tirada de Batalla por nave y ronda; éxito inflige MDMG (doble con crítico), fallo da 1 o 2 MDMG propios; sin armas o desconectadas fallan solas y el rival acierta solo (36) | Pulsar el nombre del arma. **Corregido:** disparar se hace desde las armas, con una sola tirada. |
+| Clase: [+] contra naves 1 Clase inferior; 2 o más Clases, invencible (36) | Disparar. |
+| Moral: 1d10 contra el MDMG actual (36) | Botón «Moral enemiga» y macro. |
 | Informe tras la batalla: tirada de Sistemas (36) | Mismo flujo que el mantenimiento. |
-| **Reabastecer armas** (31): sin reabastecer tras un combate, [-] en Batalla en el siguiente; después, fallo automático | **Añadido:** botones «Terminar el combate» y «Reabastecer armas» (coste por arma y Clase). |
+| **Reabastecer armas** (31): sin reabastecer tras un combate, [-] en Batalla en el siguiente; después, fallo automático | **Añadido:** estado por arma en la pestaña Armas, rearmar una a una o todas (coste por arma y Clase) y paso a «sin reabastecer» al cerrar el combate. |
 | Armas (29): +Batalla, 1 Anclaje cada una, MDMG +1 del lanzamisiles pesado | Datos y sincronización. **Añadido:** aviso si no hay Anclajes libres o huecos de mejora. |
 | Sistema de defensa láser: ignora la bonificación de MDMG de los lanzamisiles enemigos; solo defensivo (29) | **Añadido** en Disparar. |
-| Contramedidas electrónicas: [-] al MDMG enemigo (29) | Disparar y panel. |
+| Contramedidas electrónicas: [-] al MDMG enemigo (29) | Disparar. |
 | Haz de partículas: el enemigo supera una tirada de Sistemas o +1 radiación (29) | **Añadido** como aviso en la tarjeta. |
-| Cañón de riel: dispara a alcance de detección (29, 33) | Aviso y panel. |
+| Cañón de riel: dispara a alcance de detección (29, 33) | Aviso en la tarjeta. |
 | Mejoras (28): efectos numéricos (Reactor, IA, Radiadores, Depósito, Placas, Blindaje, Estructura, Anclaje, Mayor potencia de MDMG, Reforma de sistemas) | Sincronización. Taller: aviso en Reparar (reparar hasta 3 MDMG y 3 de Casco sin puerto). |
 | Cazas: +1 a Batalla cada uno, máximo +10 (29) | Sincronización. |
 | Reparaciones (38): menores 2d10 días, sin coste; mayores en puerto, 1d5 MCR × Clase **cada una**; cada punto de Casco o MDMG cuenta | Macro Reparar. |
@@ -39,9 +39,16 @@ sistema `mosh` 0.6.1. Las páginas son las del PDF del manual; no aparecen en la
 - **Tripulación**: el manual dice que las naves pueden sumar la bonificación de habilidad de una persona (7). Los personajes se arrastran a la ficha y su habilidad se elige en la tirada.
 - **Batalla**: las cifras son las del manual (Patrullera 32 = 30 + 2 de armas); la tarjeta lo desglosa.
 
+## Revisión 1.5.0
+
+- **Estrés de «todos a bordo»** (7): la tarjeta de una tirada fallida de la nave lleva botones para que el Guardián lo aplique a todos los personajes de la tripulación y cada jugador, a su personaje; con fallo crítico, lo mismo para la tirada de Pánico.
+- **Ficha integrada**: desaparecen el Dossier y el panel de combate; el mismo flujo del manual (movimiento, ataque, moral, informe, reparación) se hace desde la ficha.
+- **Planos de cubierta**: eran todos el plano por defecto del sistema. Ahora son un esquema propio por nave generado desde sus cubiertas (no se redistribuyen los planos del manual).
+
 ## Decisiones y límites
 
 - Las armas no se tiran una a una: el manual da una sola tirada de Batalla por nave (las armas suman a la Batalla). El botón Disparar de cada arma hace esa tirada.
-- El seguimiento del reabastecimiento depende de pulsar «Terminar el combate»: el módulo no sabe cuándo acaba un enfrentamiento.
+- El paso a «sin reabastecer» ocurre al cerrar el combate del Combat Tracker; sin él, se pulsa «Terminar el combate» en la pestaña Armas.
+- El Estrés a toda la tripulación alcanza a los personajes arrastrados a la ficha de la nave; los PNJ sin ficha se llevan a mano.
 - No se automatizan: Sensores de tiro ([+] en Batalla), Sistemas redundantes, Reducción de firma, el nivel del motor de Salto, ni la resistencia de una Lancha de abordaje. Son decisiones del Guardián o efectos de narración.
 - Los núcleos warp de partida (2 en las naves con Salto) no vienen en el manual.

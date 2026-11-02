@@ -83,7 +83,21 @@ export async function tirarSistema(actor, { dado = "1d100", modo = "normal", aim
   const roll = await new Roll(actor.parseRollString(cadena, aim)).evaluate();
   const r = actor.parseRollResult(cadena, roll, cero, criticos, objetivo, comparacion, null);
   const dados = roll.dice.flatMap((d) => d.results.map((x) => x.result));
-  return { roll, total: r.total, exito: Boolean(r.success), critico: Boolean(r.critical), dados };
+  return { roll, total: r.total, exito: Boolean(r.success), critico: Boolean(r.critical), dados, dadosHtml: r.rollHtml ?? "" };
+}
+
+/** Titular de resultado con el marcado del sistema («¡ÉXITO!», «FALLO CRÍTICO»…). */
+export const resultadoHtml = (t, texto = null) =>
+  `<div class="mr-kit-titular ${t.exito ? "ok" : "mal"}"><strong>${texto ?? `${t.critico ? (t.exito ? "ÉXITO CRÍTICO" : "FALLO CRÍTICO") : t.exito ? "¡ÉXITO!" : "¡FALLO!"}`}</strong></div>`;
+
+/** Botones de Estrés (y Pánico con fallo crítico) para el chat: los aplica el Guardián a toda la tripulación o cada jugador a su personaje. */
+export function botonesEstres(nave, { critico = false } = {}) {
+  const b = (accion, icono, texto, extra = "") => `<button type="button" data-mrkit-action="${accion}" data-actor="${nave.id}"${extra}><i class="fa-solid ${icono}" inert></i> ${texto}</button>`;
+  return [
+    b("estres-todos", "fa-users", "Estrés a toda la tripulación", ' data-solo-gm="1"'),
+    b("estres-mio", "fa-user", "Aplicarme 1 de Estrés"),
+    ...(critico ? [b("panico-todos", "fa-skull", "Pánico a toda la tripulación", ' data-solo-gm="1"'), b("panico-mio", "fa-skull", "Mi tirada de Pánico")] : []),
+  ].join("");
 }
 
 /**
@@ -109,7 +123,7 @@ export function filaDado(resultados) {
  * Tarjeta de chat con el mismo marcado que las del sistema mosh (`.mosh > .rollcontainer`), de modo que
  * hereda su aspecto y lo que añaden otros módulos de Mothership (modo oscuro, tamaño del texto, contraste…).
  */
-export function tarjeta({ titulo, subtitulo = "", cuerpo = "", pie = "", clase = "", icono = "dossier" }) {
+export function tarjeta({ titulo, subtitulo = "", resultado = "", cuerpo = "", dados = "", pie = "", clase = "", icono = "dossier" }) {
   const img = `modules/${MODULE}/assets/iconos/${icono}.webp`;
   return `<div class="mosh mr-kit-card ${clase}">
     <div class="rollcontainer">
@@ -117,9 +131,11 @@ export function tarjeta({ titulo, subtitulo = "", cuerpo = "", pie = "", clase =
         <div class="rollweaponh1">${titulo}</div>
         <div style="text-align: right"><img class="roll-image" src="${img}" alt="" /></div>
       </div>
+      ${resultado}
       ${subtitulo ? `<div class="rollmods mr-kit-card-sub">${subtitulo}</div>` : ""}
       <div class="description mr-kit-card-body"><div class="body">${cuerpo}</div></div>
-      ${pie ? `<div class="description mr-kit-card-foot"><div class="body">${pie}</div></div>` : ""}
+      ${dados}
+      ${pie ? `<div class="mr-botones">${pie}</div>` : ""}
     </div>
   </div>`;
 }
@@ -251,11 +267,18 @@ export function tripulantes(nave) {
     .filter((t) => t.actor);
 }
 
+/** Personaje del jugador que está a bordo: su personaje asignado o el del token seleccionado. */
+export function personajeDelUsuario(nave) {
+  const aBordo = tripulantes(nave).map((t) => t.actor);
+  const candidatos = [game.user.character, ...(canvas?.tokens?.controlled ?? []).map((t) => t.actor)].filter(Boolean);
+  return candidatos.find((a) => aBordo.some((b) => b.id === a.id)) ?? null;
+}
+
 /**
  * Diálogo de una tirada de nave: tipo de tirada y la bonificación de habilidad de UNA persona de la tripulación
  * (solo una persona puede aportarla). Devuelve `{ modo, bonus, quien }` o `null` si se cancela.
  */
-export async function pedirTirada(nave, titulo, texto = "") {
+export async function pedirTirada(nave, titulo, texto = "", { combustible = false } = {}) {
   const grupos = tripulantes(nave).map(({ actor }) => {
     const habilidades = actor.items.filter((i) => i.type === "skill")
       .map((h) => `<option value="${Number(h.system.bonus) || 0}|${foundry.utils.escapeHTML(`${actor.name} · ${h.name}`)}">${foundry.utils.escapeHTML(h.name)} (+${Number(h.system.bonus) || 0})</option>`).join("");
@@ -271,13 +294,15 @@ export async function pedirTirada(nave, titulo, texto = "") {
       ${grupos ? `<div class="form-group"><label>Habilidad de la tripulación (solo una persona la aporta)</label>
         <select name="hab"><option value="">Ninguna</option>${grupos}</select></div>` : ""}
       <div class="form-group"><label>${grupos ? "O una bonificación a mano" : "Bonificación de habilidad (solo una persona la aporta)"}</label>
-        <input type="number" name="manual" value="0" min="0" max="30"></div>`,
+        <input type="number" name="manual" value="0" min="0" max="30"></div>
+      ${combustible ? `<div class="form-group"><label>Combustible que quemas (evadir o perseguir: [+] a quien gasta más)</label>
+        <input type="number" name="quemar" value="0" min="0" max="${Number(nave.system.supplies.fuel.value) || 0}"></div>` : ""}`,
     buttons: [{
       label: "Tirar", action: "tirar", icon: "fa-solid fa-dice-d20", default: true,
       callback: (e, b) => {
         const f = b.form.elements;
         const [bonus, quien] = f.hab?.value ? f.hab.value.split("|") : [Number(f.manual.value) || 0, ""];
-        return { modo: f.modo.value, bonus: Number(bonus) || 0, quien };
+        return { modo: f.modo.value, bonus: Number(bonus) || 0, quien, quemar: Number(f.quemar?.value) || 0 };
       },
     }],
     rejectClose: false,
@@ -406,7 +431,33 @@ export function registrarBotonesChat() {
       });
     }
 
-    html.querySelectorAll("[data-mrkit-action]").forEach((boton) => {
+    // Estrés y Pánico: el Guardián los aplica a toda la tripulación y cada jugador, a su personaje.
+    const hechos = message.flags?.[MODULE]?.hechos ?? [];
+    const clave = (tipo, a) => `${MODULE}.${message.id}.${tipo}.${a.id}`;
+    const yaHecho = (tipo, a) => hechos.includes(`${tipo}.${a.id}`) || localStorage.getItem(clave(tipo, a)) === "1";
+    html.querySelectorAll("[data-solo-gm]").forEach((b) => { if (!game.user.isGM) b.remove(); });
+    html.querySelectorAll('[data-mrkit-action$="-todos"], [data-mrkit-action$="-mio"]').forEach((boton) => {
+      const [tipo, quien] = boton.dataset.mrkitAction.split("-");
+      const nave = game.actors.get(boton.dataset.actor);
+      const destinatarios = () => (quien === "todos" ? tripulantes(nave).map((t) => t.actor) : [personajeDelUsuario(nave)].filter(Boolean));
+      const marcar = () => { boton.disabled = true; boton.classList.add("hecho"); };
+      if (!nave || (destinatarios().length && destinatarios().every((a) => yaHecho(tipo, a)))) marcar();
+      boton.addEventListener("click", async (ev) => {
+        ev.preventDefault();
+        const lista = destinatarios();
+        if (!lista.length) return ui.notifications.warn(quien === "todos" ? `${nave.name} no tiene personajes a bordo: arrástralos a la ficha de la nave.` : "Tu personaje no está en la tripulación de esta nave (arrástralo a su ficha) o no tienes personaje asignado.");
+        marcar();
+        for (const a of lista) {
+          if (yaHecho(tipo, a) || !a.isOwner) continue;
+          if (tipo === "estres") await a.modifyActor("system.other.stress.value", 1, null, true);
+          else await a.rollTable("panicCheck", null, null, null, null, null, null);
+          localStorage.setItem(clave(tipo, a), "1");
+        }
+        if (game.user.isGM) await message.update({ [`flags.${MODULE}.hechos`]: [...new Set([...hechos, ...lista.map((a) => `${tipo}.${a.id}`)])] });
+      });
+    });
+
+    html.querySelectorAll('[data-mrkit-action]:not([data-mrkit-action$="-todos"]):not([data-mrkit-action$="-mio"])').forEach((boton) => {
       boton.addEventListener("click", async (ev) => {
         ev.preventDefault();
         const nave = game.actors.get(boton.dataset.actor);

@@ -14,7 +14,7 @@ copyFileSync("module.json", "dist/module.json");
 
 const lista = execFileSync("unzip", ["-Z1", salida]).toString().split("\n");
 const imprescindibles = [
-  "module.json", "scripts/kit.js", "scripts/sincronizar.js", "scripts/accesibilidad.js", "templates/dossier.hbs", "templates/combate.hbs",
+  "module.json", "scripts/kit.js", "scripts/sincronizar.js", "scripts/accesibilidad.js", "scripts/hoja-nave.js", "templates/nave.hbs",
   "templates/viaje.hbs", "styles/kit.css", "assets/naves/corbeta.webp", "assets/iconos/averia.webp",
   ...m.packs.map((p) => `${p.path}/CURRENT`),
 ];
