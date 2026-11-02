@@ -12,7 +12,7 @@
  */
 import {
   claseNave, mdmgTotal, valorMDMG, aplicarImpacto, textoImpacto, tirarSistema, tirarExpresionMDMG,
-  efectoMegadanio, publicarTirada, tarjeta, resultadoHtml, botonesEstres, esArmaDefensiva, pedirTirada, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
+  efectoMegadanio, publicarTirada, tarjeta, resultadoHtml, botonesEstres, lineaHabilidad, esArmaDefensiva, pedirTirada, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
 } from "./util.js";
 
 /** «Batalla 32 = 30 base + 2 de armas» a partir de los datos de la nave. */
@@ -76,7 +76,7 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
   const lineas = [];
   lineas.push(sinArmas
     ? `<p>${sinReabastecer ? "Armas sin reabastecer" : "Sin armas operativas"}: la nave falla automáticamente.</p>`
-    : `<p>Has sacado <strong>${String(tirada.total).padStart(2, "0")}</strong> y necesitabas menos de <strong>${valorBatalla}</strong> (Batalla).</p>`);
+    : `<p>${tirada.exito ? "Has sacado" : "No has sacado"} <strong>${String(tirada.total).padStart(2, "0")}</strong> por debajo de tu <strong>Batalla</strong>${pedida.bonus ? " más la bonificación de habilidad" : ""} (<strong>${valorBatalla}</strong>).</p>${lineaHabilidad(pedida)}`);
   lineas.push(`<p class="mr-kit-nota">${desgloseBatalla(nave)}${pedida.bonus ? ` + habilidad ${pedida.quien || ""} (+${pedida.bonus}) = ${valorBatalla}` : ""}.</p>`);
   if (arma) lineas.push(`<p>Dispara <strong>${arma.name}</strong> (+${arma.system.bonus ?? 0}, ya incluido en la Batalla de la nave).</p>`);
   if (armasPendientes(nave) === 1) lineas.push(`<p class="mr-kit-efecto">Armas sin reabastecer desde el combate anterior: tirada con [-].</p>`);
@@ -93,7 +93,7 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
       if (i.total >= 9) lineas.push(`<p class="mr-kit-critico"><strong>¡${objetivo.name} queda destruida!</strong></p>`);
     } else {
       lineas.push(`<p><strong>${objetivo.name}</strong> debe recibir <strong>${inflige}</strong> MDMG (${textoMdmg}). Lo aplica quien controla esa nave.</p>`);
-      boton = `<button type="button" data-mrkit-action="aplicar-mdmg" data-actor="${objetivo.id}" data-cantidad="${inflige}"><i class="fa-solid fa-burst"></i> Aplicar ${inflige} MDMG</button>`;
+      boton = `<button type="button" data-mrkit-action="aplicar-mdmg" data-actor="${objetivo.id}" data-uuid="${objetivo.uuid}" data-cantidad="${inflige}"><i class="fa-solid fa-burst"></i> Aplicar ${inflige} MDMG</button>`;
     }
   } else if (soloDefensivas) {
     lineas.push("<p>Solo hay armas defensivas instaladas: no se inflige MDMG.</p>");

@@ -5,7 +5,7 @@
 import { dispararNave } from "./ataque.js";
 import { MODULE } from "./util.js";
 import {
-  aviso, elegirNave, elegirModo, pedirTirada, tirarSistema, publicarTirada, filaDado, tarjeta, resultadoHtml, botonesEstres,
+  aviso, elegirNave, elegirModo, pedirTirada, tirarSistema, publicarTirada, filaDado, tarjeta, resultadoHtml, botonesEstres, lineaHabilidad,
   mdmgTotal, armasPendientes, modoConPenalizacion, precioReabastecer, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
   claseNave, formatearCreditos,
 } from "./util.js";
@@ -61,7 +61,7 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
   const fallo = sinArmas || !t.exito;
   let cuerpo = sinArmas
     ? `<p>${efecto === 2 ? "Armas inactivas (MDMG 2)" : "Armas sin reabastecer"}: la nave falla todas las tiradas de Batalla.</p>`
-    : `<p>Has sacado <strong>${String(t.total).padStart(2, "0")}</strong> y necesitabas menos de <strong>${valor}</strong> (${nombre}${datos.bonus ? ` + ${datos.bonus} de ${datos.quien || "habilidad"}` : ""}).</p>`;
+    : `<p>${t.exito ? "Has sacado" : "No has sacado"} <strong>${String(t.total).padStart(2, "0")}</strong> por debajo de tu <strong>${nombre}</strong>${datos.bonus ? " más la bonificación de habilidad" : ""} (<strong>${valor}</strong>).</p>${lineaHabilidad(datos)}`;
   if (datos.quemar) cuerpo += `<p class="mr-kit-nota">Combustible quemado: ${datos.quemar}. Quien gasta más tira con [+].</p>`;
   if (fallo) cuerpo += `<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong>${t.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`;
   const icono = { thrusters: "viaje", battle: "combate", systems: "averia" }[caracteristica];

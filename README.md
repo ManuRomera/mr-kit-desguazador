@@ -27,7 +27,7 @@ Módulo no oficial de **Foundry VTT v13** (v14 sin probar) que lleva a tu mesa t
 ## Así se ve
 
 <p align="center"><img src="docs/img/hoja.webp" alt="Ficha de nave del Kit: características, casco, tripulación, megadaño y armas" width="49%"> <img src="docs/img/hoja-oscuro.webp" alt="La misma ficha con el modo oscuro de MR- Mothership en español" width="49%"></p>
-<p align="center"><img src="docs/img/chat.webp" alt="Tarjeta de chat con botones de Estrés para toda la tripulación" width="32%"> <img src="docs/img/plano.webp" alt="Plano esquemático de cubiertas de la Corbeta" width="66%"></p>
+<p align="center"><img src="docs/img/chat.webp" alt="Tarjeta de chat con botones de Estrés para toda la tripulación" width="32%"> <img src="docs/img/plano.webp" alt="Plano de cubierta de la Corbeta, del manual" width="66%"></p>
 <p align="center"><img src="docs/img/viaje.webp" alt="Calculadora de viaje: billetes y fletes" width="60%"></p>
 
 ## Compatible con el resto de módulos de Mothership
@@ -102,7 +102,7 @@ Importa una nave del compendio **Naves** y ábrela: todo está en su ficha.
 - **Megadaño:** los nueve efectos siempre a la vista; pulsa un círculo para marcarlo o borrarlo. Junto al total se lee el efecto vigente.
 - **Acciones:** Mantenimiento, Socorro, Moral enemiga, Reparar, Viaje y Plano de cubierta.
 - **Pestañas:** Armas (disparar y reabastecer), Mejoras, Carga, Reparaciones (averías instaladas) y Notas (descripción, plano numerado de cubiertas y reglas propias de cada nave: inspecciones de la Patrullera, ley de salvamento del Cúter, secciones de infantería, tarifas…).
-- **Plano de cubierta:** cada nave trae su plano esquemático propio (un dibujo del módulo con sus cubiertas y sus Anclajes), que se abre como imagen y puede mostrarse a los jugadores.
+- **Plano de cubierta:** cada nave trae su plano del manual (la doble página de la edición en español, con sus cubiertas numeradas), que se abre como imagen y puede mostrarse a los jugadores.
 - La ventana no tiene barra de desplazamiento: las listas largas se desplazan dentro de su pestaña.
 
 ### Tiradas: las del sistema
@@ -218,7 +218,7 @@ npm run todo     # contenido + compendios
 npm run zip      # genera mr-kit-desguazador.zip sin node_modules
 ```
 
-`tools/planos.mjs` dibuja el plano esquemático de cada nave a partir de sus cubiertas (luego `tools/marcar.py` lo convierte a WebP con la marca).
+`tools/planos.py` extrae del PDF en español la doble página de cada nave (planos de cubierta) a `assets/planos/` con la marca MR.
 `tools/contenido.mjs` contiene los datos del manual (y `tools/textos.mjs` sus textos largos) y genera `_data/*.json`;
 `tools/build.mjs` compila esos JSON a compendios LevelDB compatibles con Foundry v13.
 Los identificadores son deterministas, de modo que recompilar no rompe enlaces

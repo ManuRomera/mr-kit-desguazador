@@ -43,7 +43,7 @@ sistema `mosh` 0.6.1. Las páginas son las del PDF del manual; no aparecen en la
 
 - **Estrés de «todos a bordo»** (7): la tarjeta de una tirada fallida de la nave lleva botones para que el Guardián lo aplique a todos los personajes de la tripulación y cada jugador, a su personaje; con fallo crítico, lo mismo para la tirada de Pánico.
 - **Ficha integrada**: desaparecen el Dossier y el panel de combate; el mismo flujo del manual (movimiento, ataque, moral, informe, reparación) se hace desde la ficha.
-- **Planos de cubierta**: eran todos el plano por defecto del sistema. Ahora son un esquema propio por nave generado desde sus cubiertas (no se redistribuyen los planos del manual).
+- **Planos de cubierta**: eran todos el plano por defecto del sistema. Ahora cada nave lleva su plano del manual en español (`tools/planos.py`). Los planos son arte de Tuesday Knight Games: la licencia con la editorial está pendiente y cubre también estas imágenes.
 
 ## Decisiones y límites
 

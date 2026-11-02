@@ -1234,3 +1234,136 @@ body.mr-mosh-oscuro .mr-kit-enlace {
   overflow: visible;
   scrollbar-width: none;
 }
+
+/* Los campos dentro de las cajas de dos valores no pintan su propio fondo: así no pisan el marco redondeado */
+.mr-kit-nave .minmaxwrapper,
+.mr-kit-nave .minmaxwrapper-black {
+  overflow: hidden;
+}
+
+.mr-kit-nave .minmaxwrapper input {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 0;
+}
+
+/* ==================================================================
+   Diálogos de tirada
+   ================================================================== */
+/* Los diálogos del sistema (mantenimiento, socorro, quiebra, moral) llevan 265 px de alto fijo aunque solo tengan los
+   tres botones: se ajustan a su contenido. */
+.application.dialog.macro-popup-dialog:has(.dialog-form > footer:only-child) {
+  height: auto !important;
+}
+
+.mr-kit-dialogo .mr-kit-habilidades {
+  max-height: 46vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.mr-kit-dialogo .mr-kit-habilidades::-webkit-scrollbar {
+  display: none;
+}
+
+.mr-kit-tripulante > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  margin: 4px 0;
+  border-radius: 21px;
+  background: #111;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mr-kit-tripulante > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mr-kit-tripulante > summary img {
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.mr-kit-tripulante > summary i {
+  width: 26px;
+  text-align: center;
+}
+
+/* Combustible quemado: puntos que se rellenan, sin escribir cifras */
+.mr-kit-fuel {
+  margin-top: 6px;
+}
+
+.mr-kit-pips {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 6px 8px;
+}
+
+.mr-kit-pips input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mr-kit-pips label {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--mrk-borde);
+  border-radius: 50%;
+  background: var(--mrk-fondo);
+  color: var(--mrk-texto-suave);
+  cursor: pointer;
+}
+
+.mr-kit-pips label:hover {
+  box-shadow: 0 0 8px 0 #9e9e9e;
+}
+
+.mr-kit-pips input:checked ~ label:not(:last-child) {
+  background: var(--mrk-texto);
+  border-color: var(--mrk-texto);
+}
+
+.mr-kit-pips input:focus-visible + label {
+  outline: 2px solid var(--mrk-peligro);
+  outline-offset: 2px;
+}
+
+/* Quién aporta la habilidad, en la tarjeta */
+.mr-kit-quien {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.mr-kit-quien img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--mrk-borde);
+}
+
+.mr-kit-dialogo .macro_img img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}

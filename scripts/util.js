@@ -86,13 +86,17 @@ export async function tirarSistema(actor, { dado = "1d100", modo = "normal", aim
   return { roll, total: r.total, exito: Boolean(r.success), critico: Boolean(r.critical), dados, dadosHtml: r.rollHtml ?? "" };
 }
 
+/** Quién aporta su habilidad a la tirada de la nave (retrato y habilidad), para el cuerpo de la tarjeta. */
+export const lineaHabilidad = (datos) => datos?.bonus
+  ? `<div class="mr-kit-quien">${datos.img ? `<img src="${datos.img}" alt="" />` : '<i class="fa-solid fa-user"></i>'}<span>${foundry.utils.escapeHTML(datos.quien || "Habilidad")} <strong>+${datos.bonus}</strong></span></div>` : "";
+
 /** Titular de resultado con el marcado del sistema («¡ÉXITO!», «FALLO CRÍTICO»…). */
 export const resultadoHtml = (t, texto = null) =>
   `<div class="mr-kit-titular ${t.exito ? "ok" : "mal"}"><strong>${texto ?? `${t.critico ? (t.exito ? "ÉXITO CRÍTICO" : "FALLO CRÍTICO") : t.exito ? "¡ÉXITO!" : "¡FALLO!"}`}</strong></div>`;
 
 /** Botones de Estrés (y Pánico con fallo crítico) para el chat: los aplica el Guardián a toda la tripulación o cada jugador a su personaje. */
 export function botonesEstres(nave, { critico = false } = {}) {
-  const b = (accion, icono, texto, extra = "") => `<button type="button" data-mrkit-action="${accion}" data-actor="${nave.id}"${extra}><i class="fa-solid ${icono}" inert></i> ${texto}</button>`;
+  const b = (accion, icono, texto, extra = "") => `<button type="button" data-mrkit-action="${accion}" data-actor="${nave.id}" data-uuid="${nave.uuid}"${extra}><i class="fa-solid ${icono}" inert></i> ${texto}</button>`;
   return [
     b("estres-todos", "fa-users", "Estrés a toda la tripulación", ' data-solo-gm="1"'),
     b("estres-mio", "fa-user", "Aplicarme 1 de Estrés"),
@@ -274,37 +278,63 @@ export function personajeDelUsuario(nave) {
   return candidatos.find((a) => aBordo.some((b) => b.id === a.id)) ?? null;
 }
 
+/** Descripción de una habilidad para el selector: sin etiquetas y sin repetir el nombre. */
+function descripcionHabilidad(h) {
+  const texto = foundry.utils.escapeHTML(String(h.system.description ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim());
+  return texto && texto.toLowerCase() !== h.name.toLowerCase() ? `<strong>:</strong> ${texto}` : "";
+}
+
 /**
- * Diálogo de una tirada de nave: tipo de tirada y la bonificación de habilidad de UNA persona de la tripulación
- * (solo una persona puede aportarla). Devuelve `{ modo, bonus, quien }` o `null` si se cancela.
+ * Diálogo de una tirada de nave, como el de una ficha de personaje: se elige UNA habilidad de la tripulación (con su
+ * imagen y su descripción) y el tipo de tirada con los botones Ventaja / Normal / Desventaja. Para los tripulantes sin
+ * ficha se ofrecen los tres niveles de habilidad. Con `combustible`, además, se marca cuánto se quema.
+ * Devuelve `{ modo, bonus, quien, quemar }` o `null` si se cancela.
  */
 export async function pedirTirada(nave, titulo, texto = "", { combustible = false } = {}) {
-  const grupos = tripulantes(nave).map(({ actor }) => {
-    const habilidades = actor.items.filter((i) => i.type === "skill")
-      .map((h) => `<option value="${Number(h.system.bonus) || 0}|${foundry.utils.escapeHTML(`${actor.name} · ${h.name}`)}">${foundry.utils.escapeHTML(h.name)} (+${Number(h.system.bonus) || 0})</option>`).join("");
-    return habilidades ? `<optgroup label="${foundry.utils.escapeHTML(actor.name)}">${habilidades}</optgroup>` : "";
-  }).join("");
+  const esc = foundry.utils.escapeHTML;
+  const fila = (valor, img, bonus, nombre, desc = "") => `<label><div class="macro_window" style="vertical-align: middle; padding-left: 3px;">
+      <div class="grid grid-4col" style="align-items: center; grid-template-columns: 20px 60px 45px auto">
+        <input type="radio" name="hab" value="${esc(valor)}">
+        <div class="macro_img" style="padding: 5px 0;">${img ? `<img src="${img}" style="border:none"/>` : ""}</div>
+        <div class="macro_desc" style="display: table;"><span style="display: table-cell; vertical-align: middle; color: #888; font-weight:500; font-size: 14pt">+${bonus}</span></div>
+        <div class="macro_desc" style="display: table;"><span style="display: table-cell; vertical-align: middle;"><p><strong>${esc(nombre)}</strong>${desc}</span></div>
+      </div></div></label>`;
 
+  const crew = tripulantes(nave).map(({ actor }) => ({ actor, habilidades: actor.items.filter((i) => i.type === "skill") })).filter((t) => t.habilidades.length);
+  const grupos = crew.map(({ actor, habilidades }, n) => `<details class="mr-kit-tripulante"${n === 0 ? " open" : ""}>
+      <summary><img src="${actor.img}" alt="" /><span>${esc(actor.name)}</span></summary>
+      ${habilidades.map((h) => fila(`${Number(h.system.bonus) || 0}|${actor.name} · ${h.name}|${actor.img}`, h.img, Number(h.system.bonus) || 0, h.name, descripcionHabilidad(h))).join("")}
+    </details>`).join("");
+  const pnj = `<details class="mr-kit-tripulante"><summary><i class="fa-solid fa-user"></i><span>Tripulación sin ficha</span></summary>
+      ${[["Entrenado", 10], ["Experto", 15], ["Maestro", 20]].map(([n, b]) => fila(`${b}|${n}`, "", b, n)).join("")}
+    </details>`;
+
+  const maximo = Math.min(6, Number(nave.system.supplies.fuel.value) || 0);
+  const nombre = `q${foundry.utils.randomID(4)}`;
+  const pips = Array.from({ length: maximo }, (_, k) => maximo - k).concat(0)
+    .map((n) => `<input type="radio" name="quemar" id="${nombre}${n}" value="${n}"${n === 0 ? " checked" : ""}><label for="${nombre}${n}" data-tooltip="${n ? `Quemar ${n}` : "No quemar combustible"}">${n ? "" : '<i class="fa-solid fa-xmark"></i>'}</label>`).join("");
+  const fuel = combustible ? `<div class="mr-kit-fuel"><div class="macro_desc"><h4>Combustible que quemas</h4>Evadir cuesta 3 (contacto), 2 (disparo) o 1 (detección); <em>quien gasta más tira con [+]</em>.</div>
+      <div class="mr-kit-pips">${pips}</div></div>` : "";
+
+  const boton = (modo, etiqueta, icono, defecto = false) => ({
+    label: etiqueta, action: `action_${modo}`, icon: icono, default: defecto,
+    callback: (e, b) => {
+      const f = b.form.elements;
+      const [bonus, quien, img] = (f.hab?.value ?? "").split("|");
+      return { modo, bonus: Number(bonus) || 0, quien: quien ?? "", img: img ?? "", quemar: Number(f.quemar?.value) || 0 };
+    },
+  });
   return DialogV2.wait({
     window: { title: titulo },
     classes: ["mr-kit-dialogo", "macro-popup-dialog"],
+    position: { width: 600 },
     content: `${texto ? `<p>${texto}</p>` : ""}
-      <div class="form-group"><label>Tipo de tirada</label>
-        <select name="modo"><option value="normal">Normal</option><option value="ventaja">Ventaja [+]</option><option value="desventaja">Desventaja [-]</option></select></div>
-      ${grupos ? `<div class="form-group"><label>Habilidad de la tripulación (solo una persona la aporta)</label>
-        <select name="hab"><option value="">Ninguna</option>${grupos}</select></div>` : ""}
-      <div class="form-group"><label>${grupos ? "O una bonificación a mano" : "Bonificación de habilidad (solo una persona la aporta)"}</label>
-        <input type="number" name="manual" value="0" min="0" max="30"></div>
-      ${combustible ? `<div class="form-group"><label>Combustible que quemas (evadir o perseguir: [+] a quien gasta más)</label>
-        <input type="number" name="quemar" value="0" min="0" max="${Number(nave.system.supplies.fuel.value) || 0}"></div>` : ""}`,
-    buttons: [{
-      label: "Tirar", action: "tirar", icon: "fa-solid fa-dice-d20", default: true,
-      callback: (e, b) => {
-        const f = b.form.elements;
-        const [bonus, quien] = f.hab?.value ? f.hab.value.split("|") : [Number(f.manual.value) || 0, ""];
-        return { modo: f.modo.value, bonus: Number(bonus) || 0, quien, quemar: Number(f.quemar?.value) || 0 };
-      },
-    }],
+      <div class="macro_window"><div class="macro_desc" style="padding-left: 8px;"><h4>Añadir una habilidad</h4>
+        Si alguien de la tripulación tiene una habilidad relevante, súmala: <em>solo una persona puede aportar la suya.</em></div></div>
+      <label><div class="macro_window" style="vertical-align: middle; padding-left: 3px;"><div class="grid grid-2col" style="align-items: center; grid-template-columns: 20px auto">
+        <input type="radio" name="hab" value="" checked><div class="macro_desc"><p>No añadir ninguna habilidad a esta tirada</div></div></div></label>
+      <div class="mr-kit-habilidades">${grupos}${pnj}</div>${fuel}`,
+    buttons: [boton("ventaja", "Ventaja", "fas fa-angle-double-up"), boton("normal", "Normal", "fas fa-minus", true), boton("desventaja", "Desventaja", "fas fa-angle-double-down")],
     rejectClose: false,
   });
 }
@@ -393,7 +423,7 @@ export function htmlAveria(a, nave) {
   return `<div class="mr-kit-averia ${a.mayor ? "mayor" : "menor"}">
     <div class="mr-kit-averia-titulo">d100 · ${String(a.valor).padStart(2, "0")} · ${a.mayor ? "Reparación mayor" : "Reparación menor"}</div>
     <div>${a.texto}</div>
-    ${nave ? `<button type="button" data-mrkit-action="aplicar-averia" data-actor="${nave.id}" data-numero="${a.valor}"><i class="fa-solid fa-plus"></i> Añadir a la nave</button>` : ""}
+    ${nave ? `<button type="button" data-mrkit-action="aplicar-averia" data-actor="${nave.id}" data-uuid="${nave.uuid}" data-numero="${a.valor}"><i class="fa-solid fa-plus"></i> Añadir a la nave</button>` : ""}
   </div>`;
 }
 
@@ -413,6 +443,15 @@ export async function crearAveriaDesdeUuid(nave, uuid) {
   return creado;
 }
 
+/**
+ * Nave a la que se refiere un botón del chat. Se resuelve por UUID porque con tokens no enlazados la nave de la escena
+ * (con su tripulación y su megadaño) no es la del directorio de actores: el `id` lleva a esta última y no a la que disparó.
+ */
+function naveDeBoton(boton) {
+  const porUuid = boton.dataset.uuid ? fromUuidSync(boton.dataset.uuid) : null;
+  return porUuid?.documentName === "Actor" ? porUuid : game.actors.get(boton.dataset.actor);
+}
+
 export function registrarBotonesChat() {
   Hooks.on("renderChatMessageHTML", (message, html) => {
     // Tarjetas del sistema (mantenimiento…): junto a cada enlace a una avería del Kit, un botón para añadirla a la nave.
@@ -425,6 +464,7 @@ export function registrarBotonesChat() {
         b.className = "mr-kit-boton-averia";
         b.dataset.mrkitAction = "aplicar-averia-uuid";
         b.dataset.actor = nave.id;
+        b.dataset.uuid = nave.uuid;
         b.dataset.uuid = enlace.dataset.uuid;
         b.innerHTML = '<i class="fa-solid fa-plus"></i> Añadir a la nave';
         enlace.after(b);
@@ -438,7 +478,7 @@ export function registrarBotonesChat() {
     html.querySelectorAll("[data-solo-gm]").forEach((b) => { if (!game.user.isGM) b.remove(); });
     html.querySelectorAll('[data-mrkit-action$="-todos"], [data-mrkit-action$="-mio"]').forEach((boton) => {
       const [tipo, quien] = boton.dataset.mrkitAction.split("-");
-      const nave = game.actors.get(boton.dataset.actor);
+      const nave = naveDeBoton(boton);
       const destinatarios = () => (quien === "todos" ? tripulantes(nave).map((t) => t.actor) : [personajeDelUsuario(nave)].filter(Boolean));
       const marcar = () => { boton.disabled = true; boton.classList.add("hecho"); };
       if (!nave || (destinatarios().length && destinatarios().every((a) => yaHecho(tipo, a)))) marcar();
@@ -460,7 +500,7 @@ export function registrarBotonesChat() {
     html.querySelectorAll('[data-mrkit-action]:not([data-mrkit-action$="-todos"]):not([data-mrkit-action$="-mio"])').forEach((boton) => {
       boton.addEventListener("click", async (ev) => {
         ev.preventDefault();
-        const nave = game.actors.get(boton.dataset.actor);
+        const nave = naveDeBoton(boton);
         if (!nave) return ui.notifications.warn("La nave ya no existe.");
         if (!nave.isOwner) return ui.notifications.warn("No tienes permiso sobre esa nave.");
         const accion = boton.dataset.mrkitAction;

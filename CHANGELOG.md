@@ -16,7 +16,14 @@ Todo en la ficha de la nave, con el aspecto de la ficha de personaje.
 ### Nuevo
 
 - **Botones de Estrés y Pánico en la tarjeta** cuando una tirada de la nave falla: el Guardián los aplica a toda la tripulación (los personajes arrastrados a la ficha) y cada jugador se aplica el suyo. Cada botón se desactiva al usarlo.
-- **Planos de cubierta distintos por nave**: antes todas llevaban el plano por defecto del sistema. Cada una trae ahora un plano esquemático propio (cubiertas numeradas y Anclajes), que se abre como imagen. Las naves ya importadas se actualizan solas.
+- **Planos de cubierta distintos por nave**: antes todas llevaban el plano por defecto del sistema. Cada una trae ahora su plano del manual (la doble página de la edición en español), que se abre como imagen. Las naves ya importadas se actualizan solas.
+- **Diálogo de tirada como el de un personaje**: «Añadir una habilidad» con las habilidades de cada tripulante (retrato, bonificación y descripción, agrupadas por persona), niveles Entrenado/Experto/Maestro para la tripulación sin ficha y botones Ventaja / Normal / Desventaja. El combustible quemado se elige con puntos que se rellenan, sin escribir cifras. La tarjeta muestra quién aporta la habilidad.
+
+### Corregido
+
+- Las cajas de dos valores (Casco, Combustible, Tripulación, Armas…) ya no tienen los campos pintados por encima del marco redondeado.
+- Los diálogos del sistema de mantenimiento, socorro, quiebra y moral se ajustan a su contenido (llevaban 265 px de alto fijo).
+- **Los botones de Estrés, Pánico y MDMG de las tarjetas actúan sobre la nave que disparó**, también con tokens no enlazados (la nave de la escena, no la del directorio de actores, que no tenía la tripulación).
 
 ## 1.4.0 — 2026-11-02
 
