@@ -216,15 +216,39 @@ export function textoImpacto(i) {
   return `${i.anterior} → <strong>${i.total}</strong> MDMG.${casco}`;
 }
 
+/* ------------------------------------------------------------------ */
+/* Reabastecimiento de armas (manual, «Reabastecer armas»)             */
+/* ------------------------------------------------------------------ */
+/** Coste de reabastecer cada arma para una nave de Clase I (se multiplica por la Clase). Las contramedidas no figuran en el manual. */
+const PRECIO_ARMA = [
+  ["Cañón automático", 100000], ["Cañón láser", 50000], ["Sistema de defensa láser", 50000], ["Lanzamisiles (ligero)", 200000],
+  ["Lanzamisiles (pesado)", 300000], ["Haz de partículas", 75000], ["Cañón de riel", 400000],
+];
+export const precioReabastecer = (arma) => PRECIO_ARMA.find(([n]) => arma.name.startsWith(n))?.[1] ?? 0;
+
+/** Combates seguidos sin reabastecer: 1 = [-] en Batalla en el siguiente combate; 2 o más = falla automáticamente. */
+export const armasPendientes = (nave) => Number(nave?.flags?.[MODULE]?.pendiente) || 0;
+
+/** Aplica la penalización por no haber reabastecido (una [-] anula una [+]). */
+export function modoConPenalizacion(nave, modo) {
+  if (armasPendientes(nave) !== 1) return modo;
+  return modo === "ventaja" ? "normal" : "desventaja";
+}
+
+/** Anota que la nave ha usado sus armas en este combate (para exigir el reabastecimiento al terminarlo). */
+export function marcarArmasUsadas(nave) {
+  if (nave?.isOwner && !nave.flags?.[MODULE]?.armasUsadas) return nave.setFlag(MODULE, "armasUsadas", true);
+}
+
 /** Armas «solo defensivas»: no infligen MDMG por sí solas. */
 export const esArmaDefensiva = (item) => Boolean(item?.flags?.[MODULE]?.defensiva);
 
 /** Expresión de MDMG de una nave: «0» si no tiene un arma ofensiva instalada. */
-export function valorMDMG(nave) {
+export function valorMDMG(nave, { sinExtra = false } = {}) {
   const base = String(nave?.system?.["weapon-stats"]?.megadamage?.value ?? "1").trim() || "1";
   const armas = nave?.items?.filter((i) => i.type === "weapon") ?? [];
   if (!armas.some((a) => !esArmaDefensiva(a))) return "0";
-  const extra = armas.reduce((s, a) => s + (Number(a.flags?.[MODULE]?.mdmgExtra) || 0), 0);
+  const extra = sinExtra ? 0 : armas.reduce((s, a) => s + (Number(a.flags?.[MODULE]?.mdmgExtra) || 0), 0);
   return extra ? `${base}+${extra}` : base;
 }
 

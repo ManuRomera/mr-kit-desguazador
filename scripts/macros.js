@@ -3,9 +3,10 @@
  * Se exponen en game.mrKit.macros y las macros del compendio llaman a estos métodos.
  */
 import { dispararNave } from "./ataque.js";
+import { MODULE } from "./util.js";
 import {
   aviso, elegirNave, elegirModo, tirarSistema, publicarTirada, filaDado, tarjeta,
-  mdmgTotal, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
+  mdmgTotal, armasPendientes, modoConPenalizacion, precioReabastecer, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
   claseNave, formatearCreditos,
 } from "./util.js";
 
@@ -17,7 +18,11 @@ const NOMBRE_CARACTERISTICA = { thrusters: "Propulsores", battle: "Batalla", sys
 /* ------------------------------------------------------------------ */
 /* Tirada de característica de nave                                    */
 /* ------------------------------------------------------------------ */
-/** Delegada en el sistema: así comparte ventaja, críticos, estrés y mensaje con la ficha. */
+/**
+ * Tirada de Propulsores, Batalla o Sistemas de la nave con la lógica del sistema (por debajo, 90+ falla, dobles críticos,
+ * Ventaja/Desventaja) y la regla del manual: cada vez que una nave falla una tirada de Característica, todos a bordo
+ * ganan 1 de Estrés (y hacen una tirada de Pánico con un fallo crítico). Solo una persona aporta su bonificación de habilidad.
+ */
 export async function tiradaCaracteristica(nave = null, caracteristica = null) {
   nave ??= await elegirNave();
   if (!nave) return;
@@ -29,12 +34,45 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
       window: { title: `Tirada de nave · ${nave.name}` },
       classes: ["mr-kit-dialogo", "macro-popup-dialog"],
       content: `<div class="form-group"><label>Característica</label><select name="car">${opciones}</select></div>`,
-      buttons: [{ label: "Tirar", action: "tirar", icon: "fa-solid fa-dice-d20", default: true, callback: (e, b) => b.form.elements.car.value }],
+      buttons: [{ label: "Siguiente", action: "tirar", icon: "fa-solid fa-dice-d20", default: true, callback: (e, b) => b.form.elements.car.value }],
       rejectClose: false,
     });
     if (!caracteristica) return;
   }
-  return nave.rollCheck(null, "low", caracteristica, null, null, null);
+
+  const nombre = NOMBRE_CARACTERISTICA[caracteristica];
+  const efecto = mdmgTotal(nave);
+  if (caracteristica === "thrusters" && efecto === 3) return ui.notifications.warn("Sin navegación (MDMG 3): la nave no puede hacer tiradas de Propulsores.");
+  const sinArmas = caracteristica === "battle" && (efecto === 2 || armasPendientes(nave) >= 2);
+
+  const datos = await DialogV2.wait({
+    window: { title: `Tirada de ${nombre} · ${nave.name}` },
+    classes: ["mr-kit-dialogo", "macro-popup-dialog"],
+    content: `<div class="form-group"><label>Tipo de tirada</label>
+        <select name="modo"><option value="normal">Normal</option><option value="ventaja">Ventaja [+]</option><option value="desventaja">Desventaja [-]</option></select></div>
+      <div class="form-group"><label>Bonificación de habilidad (solo una persona la aporta)</label>
+        <input type="number" name="hab" value="0" min="0" max="30"></div>`,
+    buttons: [{ label: "Tirar", action: "tirar", icon: "fa-solid fa-dice-d20", default: true, callback: (e, b) => ({ modo: b.form.elements.modo.value, hab: Number(b.form.elements.hab.value) || 0 }) }],
+    rejectClose: false,
+  });
+  if (!datos) return;
+
+  const valor = (Number(nave.system.stats[caracteristica].value) || 0) + datos.hab;
+  const modo = caracteristica === "battle" ? modoConPenalizacion(nave, datos.modo) : datos.modo;
+  const rolls = [];
+  let t = { total: null, exito: false, critico: false, dados: [] };
+  if (!sinArmas) {
+    t = await tirarSistema(nave, { modo, objetivo: valor });
+    rolls.push(t.roll);
+  }
+
+  const etiqueta = sinArmas ? "Falla automáticamente" : `${t.exito ? (t.critico ? "ÉXITO CRÍTICO" : "ÉXITO") : t.critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(t.total).padStart(2, "0")} / ${valor}`;
+  let cuerpo = `${sinArmas ? "" : `<p class="mr-kit-dados">${filaDado(t.dados)}</p>`}<p class="mr-kit-resultado ${t.exito ? "ok" : "mal"}">${etiqueta}</p>`;
+  if (sinArmas) cuerpo += `<p class="mr-kit-nota">${efecto === 2 ? "Armas inactivas (MDMG 2)" : "Armas sin reabastecer"}: la nave falla todas las tiradas de Batalla.</p>`;
+  if (!t.exito) cuerpo += `<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong> @UUID[Compendium.mosh.macros_triggered_1e.dvJR9DYXI2kV0BbR]{+1 Estrés}${t.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.</p>`;
+  const icono = { thrusters: "viaje", battle: "combate", systems: "averia" }[caracteristica];
+  const html = tarjeta({ titulo: `Tirada de ${nombre}`, icono, subtitulo: `${nave.name}${datos.hab ? ` · habilidad +${datos.hab}` : ""}`, cuerpo, clase: t.exito ? "exito" : "fallo" });
+  return publicarTirada(rolls, html, { actor: nave, flavor: `Tirada de ${nombre}` });
 }
 
 /* ------------------------------------------------------------------ */
@@ -192,7 +230,7 @@ export async function reparar(nave = null) {
   const marcado = await DialogV2.wait({
     window: { title: `Reparar · ${nave.name}` },
     classes: ["mr-kit-dialogo", "macro-popup-dialog"],
-    content: `<p>Cada reparación mayor se hace en puerto y cuesta <strong>1d5 MCR × Clase ${clase}</strong>. Cada punto de Casco o de Megadaño cuenta como una reparación mayor independiente. Las menores las hace la tripulación en unos 2d10 días.</p>
+    content: `${nave.items.some((i) => i.type === "module" && i.name.startsWith("Taller")) ? '<p class="mr-kit-nota">Con el <strong>Taller</strong> puedes reparar hasta 3 MDMG y 3 de Casco sin volver a puerto (reabastecer el taller: 200kcr).</p>' : ""}<p>Cada reparación mayor se hace en puerto y cuesta <strong>1d5 MCR × Clase ${clase}</strong>. Cada punto de Casco o de Megadaño cuenta como una reparación mayor independiente. Las menores las hace la tripulación en unos 2d10 días.</p>
       ${fila("puntos", "Casco perdido y Megadaño", puntos, ` <small>(Casco ${cascoPerdido} + MDMG ${mdmg})</small>`)}
       ${fila("mayores", "Averías mayores", mayores.length)}
       ${fila("menores", "Averías menores", menores.length)}`,
@@ -237,6 +275,57 @@ export async function reparar(nave = null) {
     clase: "exito",
   });
   return publicarTirada(costeRoll, html, { actor: nave, flavor: "Reparaciones" });
+}
+
+/* ------------------------------------------------------------------ */
+/* Reabastecer las armas                                               */
+/* ------------------------------------------------------------------ */
+/**
+ * Tras un enfrentamiento en el que hayas usado las armas de la nave debes reabastecerte (en puerto). Si no lo haces, tus
+ * tiradas de Batalla tienen [-] en el siguiente combate; después, fallas automáticamente todas las tiradas de Batalla.
+ */
+export async function terminarCombate(nave = null) {
+  nave ??= await elegirNave();
+  if (!nave) return;
+  const usadas = Boolean(nave.flags?.[MODULE]?.armasUsadas);
+  const antes = armasPendientes(nave);
+  if (!usadas) {
+    return publicarTirada(null, tarjeta({ titulo: "Fin del combate", icono: "combate", subtitulo: nave.name, cuerpo: "<p>La nave no ha usado sus armas: no hace falta reabastecer.</p>" }), { actor: nave });
+  }
+  const pendiente = Math.min(2, antes + 1);
+  await nave.update({ [`flags.${MODULE}.pendiente`]: pendiente, [`flags.${MODULE}.armasUsadas`]: false });
+  const clase = claseNave(nave);
+  const coste = nave.items.filter((i) => i.type === "weapon").reduce((a, i) => a + precioReabastecer(i), 0) * clase;
+  const consecuencia = pendiente === 1 ? "Si no reabasteces, tus tiradas de Batalla tendrán [-] en el siguiente combate." : "Si no reabasteces, la nave fallará automáticamente todas las tiradas de Batalla.";
+  const html = tarjeta({
+    titulo: "Fin del combate", icono: "combate", subtitulo: nave.name,
+    cuerpo: `<p>La nave ha usado sus armas: hay que <strong>reabastecerlas en puerto</strong> (${formatearCreditos(coste)}).</p><p class="mr-kit-efecto">${consecuencia}</p>
+      ${mdmgTotal(nave) ? `<p class="mr-kit-nota">La nave ha sufrido MDMG: haz el informe tras la batalla (tirada de Sistemas).</p>` : ""}`,
+    clase: "fallo",
+  });
+  return publicarTirada(null, html, { actor: nave, flavor: "Fin del combate" });
+}
+
+export async function reabastecer(nave = null) {
+  nave ??= await elegirNave();
+  if (!nave) return;
+  const clase = claseNave(nave);
+  const armas = nave.items.filter((i) => i.type === "weapon");
+  const filas = armas.map((a) => `<li>${a.name}: ${formatearCreditos(precioReabastecer(a) * clase)}</li>`).join("");
+  const coste = armas.reduce((s, a) => s + precioReabastecer(a), 0) * clase;
+  const ok = await DialogV2.wait({
+    window: { title: `Reabastecer armas · ${nave.name}` },
+    classes: ["mr-kit-dialogo", "macro-popup-dialog"],
+    content: `<p>Reabastecer las armas en puerto cuesta, por arma y Clase ${clase}:</p><ul>${filas || "<li>La nave no tiene armas.</li>"}</ul><p><strong>Total: ${formatearCreditos(coste)}</strong></p>`,
+    buttons: [
+      { label: "Reabastecer", action: "si", icon: "fa-solid fa-gun", default: true, callback: () => true },
+      { label: "Cancelar", action: "no", icon: "fa-solid fa-xmark", callback: () => false },
+    ],
+    rejectClose: false,
+  });
+  if (!ok) return;
+  await nave.update({ [`flags.${MODULE}.pendiente`]: 0, [`flags.${MODULE}.armasUsadas`]: false });
+  return publicarTirada(null, tarjeta({ titulo: "Armas reabastecidas", icono: "arma", subtitulo: nave.name, cuerpo: `<p>Coste: <strong>${formatearCreditos(coste)}</strong>. Las tiradas de Batalla vuelven a la normalidad.</p>`, clase: "exito" }), { actor: nave, flavor: "Reabastecer armas" });
 }
 
 /* ------------------------------------------------------------------ */

@@ -12,7 +12,7 @@
  */
 import {
   claseNave, mdmgTotal, valorMDMG, aplicarImpacto, textoImpacto, tirarSistema, tirarExpresionMDMG,
-  efectoMegadanio, publicarTirada, tarjeta, filaDado, esArmaDefensiva, elegirModo,
+  efectoMegadanio, publicarTirada, tarjeta, filaDado, esArmaDefensiva, elegirModo, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
 } from "./util.js";
 
 const ENLACE_ESTRES = "@UUID[Compendium.mosh.macros_triggered_1e.dvJR9DYXI2kV0BbR]{+1 Estrés}";
@@ -30,14 +30,18 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
   if (objetivo.id === nave.id) return ui.notifications.warn("La nave no puede dispararse a sí misma.");
 
   const armas = nave.items.filter((i) => i.type === "weapon");
-  const sinArmas = !armas.length || mdmgTotal(nave) === 2; // sin armas o «Armas inactivas»: falla automáticamente
-  const dmg = valorMDMG(nave); // «0» sin arma ofensiva
+  const sinReabastecer = armasPendientes(nave) >= 2; // dos combates sin reabastecer: falla automáticamente
+  const sinArmas = !armas.length || mdmgTotal(nave) === 2 || sinReabastecer; // sin armas, «Armas inactivas» o sin munición
+  // El Sistema de defensa láser del objetivo ignora la bonificación de MDMG de los lanzamisiles.
+  const defensaLaser = tiene(objetivo, "Sistema de defensa láser");
+  const dmg = valorMDMG(nave, { sinExtra: defensaLaser }); // «0» sin arma ofensiva
   const soloDefensivas = !sinArmas && dmg === "0";
   const diff = claseNave(nave) - claseNave(objetivo);
 
   let modo = await elegirModo(`Disparo · ${nave.name}`, `Tirada de Batalla contra ${objetivo.name}${diff === 1 ? " (tienes [+] por Clase superior)" : ""}.`);
   if (!modo) return;
   if (diff === 1 && modo === "normal") modo = "ventaja";
+  modo = modoConPenalizacion(nave, modo); // sin reabastecer tras el combate anterior: [-]
 
   const rolls = [];
   let tirada = { total: null, exito: false, critico: false, dados: [] };
@@ -60,11 +64,13 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
 
   const lineas = [];
   const etiqueta = sinArmas
-    ? "Sin armas operativas: falla automáticamente"
+    ? (sinReabastecer ? "Armas sin reabastecer: falla automáticamente" : "Sin armas operativas: falla automáticamente")
     : `${tirada.exito ? (tirada.critico ? "ÉXITO CRÍTICO" : "ÉXITO") : tirada.critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(tirada.total).padStart(2, "0")} / ${nave.system.stats.battle.value}`;
   if (!sinArmas) lineas.push(`<p class="mr-kit-dados">${filaDado(tirada.dados)}</p>`);
   lineas.push(`<p class="mr-kit-resultado ${tirada.exito ? "ok" : "mal"}">${etiqueta}</p>`);
   if (arma) lineas.push(`<p>Dispara <strong>${arma.name}</strong> (+${arma.system.bonus ?? 0}, ya incluido en la Batalla de la nave).</p>`);
+  if (armasPendientes(nave) === 1) lineas.push(`<p class="mr-kit-efecto">Armas sin reabastecer desde el combate anterior: tirada con [-].</p>`);
+  if (defensaLaser && armas.some((a) => a.flags?.["mr-kit-desguazador"]?.mdmgExtra)) lineas.push(`<p class="mr-kit-nota">${objetivo.name} lleva un Sistema de defensa láser: ignora la bonificación de MDMG de los lanzamisiles.</p>`);
   if (diff >= 2) lineas.push(`<p class="mr-kit-efecto">${nave.name} está 2 o más Clases por encima: invencible en un enfrentamiento directo, salvo que el Guardián decida lo contrario.</p>`);
   if (diff <= -2) lineas.push(`<p class="mr-kit-efecto">${objetivo.name} está 2 o más Clases por encima: invencible en un enfrentamiento directo, salvo que el Guardián decida lo contrario.</p>`);
 
@@ -85,6 +91,7 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
     lineas.push(`<p>${objetivo.name} no recibe MDMG.</p>`);
   }
 
+  if (tirada.exito && tiene(nave, "Haz de partículas")) lineas.push(`<p class="mr-kit-efecto">Haz de partículas: ${objetivo.name} debe superar una tirada de Sistemas o su nivel de radiación sube 1.</p>`);
   if (propio) {
     const i = await aplicarImpacto(nave, propio);
     lineas.push(`<p>Por el fallo, <strong>${nave.name}</strong> sufre <strong>${propio}</strong> MDMG. ${textoImpacto(i)}</p>`);
@@ -94,6 +101,7 @@ export async function dispararNave(nave, arma = null, { objetivo = null } = {}) 
     ? '<p class="mr-kit-nota">El cañón de riel puede disparar a alcance de detección; el resto de armas, solo a disparo o contacto.</p>'
     : '<p class="mr-kit-nota">Solo a alcance de disparo o de contacto. La tirada de Batalla del objetivo la hace su propia nave cuando dispara.</p>');
 
+  await marcarArmasUsadas(nave);
   const html = tarjeta({ titulo: "Disparo", icono: "combate", subtitulo: `${nave.name} → ${objetivo.name}`, cuerpo: lineas.join(""), pie: boton, clase: tirada.exito ? "exito" : "fallo" });
   return publicarTirada(rolls, html, { actor: nave, flavor: "Disparo" });
 }

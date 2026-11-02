@@ -1,7 +1,7 @@
 /**
  * Calculadora de viaje espacial: combustible, núcleos warp, coste y billetes.
  */
-import { MODULE, PRECIO_FUEL, claseNave, formatearCreditos, navesDisponibles, publicarTirada, tarjeta, filaDado } from "./util.js";
+import { MODULE, PRECIO_FUEL, claseNave, flagsNave, mdmgTotal, formatearCreditos, navesDisponibles, publicarTirada, tarjeta, filaDado } from "./util.js";
 import { ConAccesibilidad } from "./accesibilidad.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -137,9 +137,11 @@ export class ViajeEspacial extends ConAccesibilidad(HandlebarsApplicationMixin(A
     const precio = PRECIO_FUEL[clase] ?? PRECIO_FUEL[1];
     const factor = e.inyectores ? 2 : 1;
     const meses = Math.max(0, e.meses);
-    const fuel = Math.ceil(meses / factor) + Math.max(0, e.cambios);
+    const fuga = nave && mdmgTotal(nave) === 1 ? 1 : 0; // MDMG 1 «Fuga de combustible de emergencia»: cada vez que gastas combustible, 1 más
+    const fuel = Math.ceil(meses / factor) + Math.max(0, e.cambios) + fuga;
     const cambios = e.cambios ? ` + ${e.cambios} por cambiar de rumbo` : "";
-    const inyectores = e.inyectores ? " Con inyectores optimizados, 1 de combustible dura 2 meses." : "";
+    const inyectores = (e.inyectores ? " Con inyectores optimizados, 1 de combustible dura 2 meses." : "") + (fuga ? " Fuga de combustible de emergencia (MDMG 1): gastas 1 más." : "");
+    if (e.tipo === "interestelar" && nave && Number(flagsNave(nave).salto ?? 1) === 0) ui.notifications.warn(`${nave.name} no tiene motor de Salto: no puede viajar entre estrellas.`);
 
     if (e.tipo === "interplanetario") {
       this.resultado = {

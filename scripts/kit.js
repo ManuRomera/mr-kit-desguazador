@@ -98,6 +98,17 @@ async function vincularTablas() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Salvación de Quiebra inicial                                        */
+/* ------------------------------------------------------------------ */
+/** El manual la fija en 2d10+10 al empezar: las naves del Kit la tiran al importarse en lugar de llevar un 20 fijo. */
+Hooks.on("createActor", async (actor, options, userId) => {
+  if (userId !== game.user.id || actor.type !== "ship" || !actor.flags?.[MODULE]?.aplicado || actor.flags[MODULE].quiebraInicial) return;
+  const roll = await new Roll("2d10+10").evaluate();
+  await actor.update({ "system.stats.bankruptcy.value": roll.total, [`flags.${MODULE}.quiebraInicial`]: roll.total });
+  ui.notifications.info(`${actor.name}: Salvación de Quiebra inicial 2d10+10 = ${roll.total}.`);
+});
+
+/* ------------------------------------------------------------------ */
 /* Pestaña Dossier en la ficha de nave                                 */
 /* ------------------------------------------------------------------ */
 Hooks.on("renderActorSheet", (app, html) => {

@@ -3,7 +3,7 @@
  */
 import {
   MODULE, BANDAS, ETIQUETA_BANDA, COSTE_EVASION, mdmgTotal, aplicarImpacto, valorMDMG, tirarExpresionMDMG,
-  tirarSistema, efectoMegadanio, publicarTirada, tarjeta, claseNave, navesDisponibles,
+  tirarSistema, efectoMegadanio, publicarTirada, tarjeta, claseNave, navesDisponibles, armasPendientes, modoConPenalizacion, marcarArmasUsadas,
 } from "./util.js";
 import { ConAccesibilidad } from "./accesibilidad.js";
 import * as macros from "./macros.js";
@@ -44,6 +44,7 @@ export class CombateNaves extends ConAccesibilidad(HandlebarsApplicationMixin(Ap
       ataque: CombateNaves.ataque,
       moral: CombateNaves.moral,
       informe: CombateNaves.informe,
+      terminar: CombateNaves.terminar,
       ronda: CombateNaves.ronda,
       reiniciar: CombateNaves.reiniciar,
       mdmgEnemigo: CombateNaves.mdmgEnemigo,
@@ -233,11 +234,11 @@ export class CombateNaves extends ConAccesibilidad(HandlebarsApplicationMixin(Ap
     if (lejos && !riel) return ui.notifications.warn("A alcance de detección solo dispara el cañón de riel.");
 
     const efectoN = mdmgTotal(nave);
-    const tieneArmas = nave.items.some((i) => i.type === "weapon") && efectoN !== 2;
+    const tieneArmas = nave.items.some((i) => i.type === "weapon") && efectoN !== 2 && armasPendientes(nave) < 2;
     const dmgNave = valorMDMG(nave);
     const soloDefensivas = tieneArmas && dmgNave === "0";
     const diff = claseNave(nave) - e.clase;
-    const modoP = diff === 1 ? "ventaja" : "normal";
+    const modoP = modoConPenalizacion(nave, diff === 1 ? "ventaja" : "normal");
     const contramedidas = nave.items.some((i) => i.type === "weapon" && i.name.startsWith("Contramedidas"));
     const modoE = diff === -1 ? "ventaja" : "normal";
     const lineas = [];
@@ -294,6 +295,8 @@ export class CombateNaves extends ConAccesibilidad(HandlebarsApplicationMixin(Ap
     if (tieneArmas && !P.exito) lineas.push(`Fallo de Batalla: todos a bordo de ${nave.name} ganan <strong>1 de Estrés</strong>${P.critico ? " y hacen una <strong>tirada de Pánico</strong>" : ""}.`);
     if (soloDefensivas) lineas.push("Solo hay armas defensivas instaladas: no se inflige MDMG.");
 
+    if (tieneArmas) await marcarArmasUsadas(nave);
+    if (armasPendientes(nave) === 1) lineas.push("Armas sin reabastecer desde el combate anterior: tu tirada de Batalla tiene [-].");
     await this.publicar("Fase de ataque", nave, rolls, lineas);
     return this.render();
   }
@@ -313,6 +316,15 @@ export class CombateNaves extends ConAccesibilidad(HandlebarsApplicationMixin(Ap
     if (!this.nave) return ui.notifications.warn("Selecciona una nave propia.");
     this.registrar("<strong>Informe tras la batalla</strong> · tirada de Sistemas de la nave propia.");
     await macros.informeBatalla(this.nave);
+    return this.render();
+  }
+
+  /** Fin del combate: si la nave ha usado sus armas, queda pendiente reabastecerlas. */
+  static async terminar() {
+    this.leer();
+    if (!this.nave) return ui.notifications.warn("Selecciona una nave propia.");
+    this.registrar("<strong>Fin del combate</strong> · se anota si hay que reabastecer las armas (resultado en el chat).");
+    await macros.terminarCombate(this.nave);
     return this.render();
   }
 

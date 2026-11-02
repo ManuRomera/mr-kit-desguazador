@@ -1,7 +1,7 @@
 /**
  * Dossier de nave: panel de consulta y control rápido del Kit del Desguazador (ApplicationV2).
  */
-import { MODULE, mdmgTotal, ajustarRecurso, valorMDMG, flagsNave, efectoMegadanio } from "./util.js";
+import { MODULE, mdmgTotal, ajustarRecurso, valorMDMG, flagsNave, efectoMegadanio, armasPendientes } from "./util.js";
 import { ConAccesibilidad, guardarLocal, recordarLocal } from "./accesibilidad.js";
 import { sincronizarNave } from "./sincronizar.js";
 import * as macros from "./macros.js";
@@ -29,6 +29,8 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
       socorro: DossierNave.socorro,
       quiebra: DossierNave.quiebra,
       reparar: DossierNave.reparar,
+      reabastecer: DossierNave.reabastecer,
+      terminar: DossierNave.terminar,
       iniciales: DossierNave.iniciales,
       sincronizar: DossierNave.sincronizar,
       disparar: DossierNave.disparar,
@@ -114,6 +116,8 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
       anclajes: { usados: armas.length, max: sistema["weapon-stats"]?.hardpoints?.max ?? flags.anclajesMax ?? 0 },
       mejoras: { usadas: modulos.length, max: sistema.supplies?.upgrades?.max ?? flags.mejorasMax ?? 0 },
       sincronizable: Boolean(flags.aplicado),
+      pendiente: armasPendientes(actor),
+      armasUsadas: Boolean(flags.armasUsadas),
       coste: flags.coste ?? "—",
       eslora: flags.eslora ?? "—",
     };
@@ -150,6 +154,8 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
   static quiebra() { return macros.quiebra(this.actor); }
   static reparar() { return macros.reparar(this.actor); }
   static iniciales() { return macros.averiasIniciales(this.actor); }
+  static reabastecer() { return macros.reabastecer(this.actor); }
+  static terminar() { return macros.terminarCombate(this.actor); }
 
   static async sincronizar() {
     const cambios = await sincronizarNave(this.actor);

@@ -111,6 +111,11 @@
     {{else}}
     <p class="mr-kit-nota">Sin armas instaladas. Sin un arma ofensiva la nave no inflige MDMG y falla sus tiradas de Batalla.</p>
     {{/if}}
+    {{#if pendiente}}<p class="mr-kit-efecto">Armas sin reabastecer: {{#if (eq pendiente 1)}}[-] en las tiradas de Batalla del próximo combate{{else}}la nave falla automáticamente las tiradas de Batalla{{/if}}.</p>{{else if armasUsadas}}<p class="mr-kit-nota">Has usado las armas en este combate: al terminarlo hay que reabastecerlas.</p>{{/if}}
+    {{#if armas.length}}<div class="mr-kit-acciones">
+      <button type="button" data-action="terminar"><i class="fa-solid fa-flag-checkered"></i> Terminar el combate</button>
+      <button type="button" data-action="reabastecer"><i class="fa-solid fa-gun"></i> Reabastecer armas</button>
+    </div>{{/if}}
 
     <h3>Mejoras <small>({{mejoras.usadas}} / {{mejoras.max}})</small></h3>
     {{#if modulos.length}}

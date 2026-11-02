@@ -130,6 +130,10 @@ En Mothership las armas de una nave **no se tiran una a una**: cada arma suma su
 
 La tirada de Batalla del objetivo la hace su propia nave cuando dispara. Si no tienes permiso sobre la nave objetivo, la tarjeta lleva un botón para que quien la controla aplique el MDMG.
 
+### Reabastecer las armas
+
+Tras un enfrentamiento en el que la nave ha usado sus armas hay que reabastecerlas en puerto. Pulsa **Terminar el combate** (Dossier, panel o macro) para anotarlo; si no reabasteces, la nave tira Batalla con [-] en el siguiente combate y falla automáticamente después. **Reabastecer armas** muestra el coste (por arma y Clase) y lo deja todo en orden.
+
 ### Combate de naves (panel)
 
 El panel resuelve el movimiento, el ataque de las dos naves a la vez y la moral cuando el enemigo no tiene ficha o quieres llevarlo todo en una ventana.

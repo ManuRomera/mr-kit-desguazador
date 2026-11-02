@@ -11,6 +11,17 @@ Las tiradas pasan a ser las del sistema mosh.
 - Las tiradas del panel de combate interpretan Ventaja, Desventaja, críticos y el fallo automático con 90 o más con las mismas funciones del sistema.
 - La lista de megadaño de la ficha de nave repetía el número delante del efecto.
 
+### Revisión de reglas
+
+Auditoría completa contra el manual (ver `docs/AUDITORIA.md`). Además de lo anterior:
+
+- **Reabastecer armas** (regla del manual): al terminar un combate en el que se han usado las armas hay que reabastecerlas; si no, [-] en Batalla en el siguiente combate y fallo automático después. Botones «Terminar el combate» y «Reabastecer armas» con el coste por arma y Clase.
+- **Efectos de las averías**: Posquemadores limitados (−2d10 Propulsores), Sensores de tiro descalibrados (−1d10 Batalla), Software obsoleto (−1d10 Sistemas), Filtros obstruidos (tripulación a la mitad) y Estructura débil (−1 Casco, −1 Mejora) se aplican a la nave al añadirlas y se quitan al repararlas.
+- **Tirada de característica de nave**: ahora da 1 de Estrés a todos a bordo al fallar (y Pánico con fallo crítico), deja sumar la bonificación de habilidad de una persona, y respeta «Sin navegación» y «Armas inactivas».
+- Sistema de defensa láser (ignora el MDMG extra de los lanzamisiles) y Haz de partículas (Sistemas o +1 radiación) en el disparo.
+- **Salvación de Quiebra** inicial 2d10+10 al importar la nave.
+- Avisos: sin Anclajes libres o sin huecos de mejora al añadir un objeto, nave sin motor de Salto, «Fuga de combustible de emergencia» en el viaje y Taller al reparar.
+
 ### Nuevo
 
 - **Botón Disparar** en cada arma ofensiva de la ficha de nave y del Dossier, y macro «Disparar con la nave»: la tirada de Batalla de la nave contra la nave marcada como objetivo (T), con Ventaja por Clase, contramedidas, Casco y MDMG aplicado al objetivo. Es una sola tirada por ronda, como en el manual, no una por arma.

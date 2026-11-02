@@ -853,6 +853,7 @@ function naveDoc(ship) {
         coste: ship.coste,
         eslora: ship.eslora,
         batallaBase: batBase,
+        tripulacion: ship.trip,
         cascoBase: ship.casco,
         mdmgBase: ship.mdmgBase,
         aplicado: { battle: bonusArmas + Math.min(10, cazas) },
@@ -938,6 +939,15 @@ function vehiculoDoc(v, i) {
   };
 }
 
+/** Averías con efecto numérico sobre la nave (dados que se tiran al añadirla; «mitad» = la mitad de la tripulación). */
+const EFECTOS_AVERIA = {
+  24: { thrusters: "2d10" }, // Posquemadores limitados: -2d10 Propulsores
+  28: { battle: "1d10" }, // Sensores de tiro descalibrados: -1d10 Batalla
+  61: { systems: "1d10" }, // Software obsoleto: -1d10 Sistemas
+  90: { crew: "mitad" }, // Filtros de aire obstruidos: capacidad de tripulación a la mitad
+  93: { hull: 1, upgrades: 1 }, // Estructura débil: -1 Casco, -1 Mejora
+};
+
 function averiaDoc([num, mayor, texto], i) {
   return {
     _id: id(`averia:${num}`),
@@ -946,7 +956,7 @@ function averiaDoc([num, mayor, texto], i) {
     img: "modules/mr-kit-desguazador/assets/iconos/averia.webp",
     system: { description: p(texto) + p(mayor ? "<strong>Reparación mayor.</strong> Solo puede realizarse en puerto. Cuesta 1d5mcr × Clase de la nave." : "<strong>Reparación menor.</strong> Unos 2d10 días de trabajo a bordo."), quantity: 1, major: mayor },
     effects: [], folder: null, sort: 100000 + i,
-    flags: { "mr-kit-desguazador": { numero: num, mayor } },
+    flags: { "mr-kit-desguazador": { numero: num, mayor, ...(EFECTOS_AVERIA[num] ? { efecto: EFECTOS_AVERIA[num] } : {}) } },
     ownership: { default: 0 },
     _stats: { systemId: "mosh", systemVersion: "0.6.1", coreVersion: "13", createdTime: ahora, modifiedTime: ahora },
   };
@@ -1388,6 +1398,12 @@ export const MACROS = [
   { clave: "disparar", nombre: "Disparar con la nave", img: "modules/mr-kit-desguazador/assets/iconos/combate.webp",
     comando: "game.mrKit.macros.disparar();",
     d: "Tirada de Batalla de la nave seleccionada contra la nave marcada como objetivo (T); aplica el MDMG." },
+  { clave: "reabastecer", nombre: "Reabastecer las armas", img: "modules/mr-kit-desguazador/assets/iconos/arma.webp",
+    comando: "game.mrKit.macros.reabastecer();",
+    d: "Reabastece las armas de la nave en puerto (coste por arma y Clase) y quita la penalización de Batalla." },
+  { clave: "fin-combate", nombre: "Terminar el combate", img: "modules/mr-kit-desguazador/assets/iconos/combate.webp",
+    comando: "game.mrKit.macros.terminarCombate();",
+    d: "Anota si la nave ha usado sus armas y hay que reabastecerlas (si no, [-] en Batalla en el siguiente combate)." },
   { clave: "combate", nombre: "Combate de naves", img: "modules/mr-kit-desguazador/assets/iconos/combate.webp",
     comando: "game.mrKit.macros.combate();",
     d: "Abre el panel de combate nave contra nave." },
