@@ -353,6 +353,13 @@ export function registrarBotonesChat() {
           boton.disabled = true;
           boton.textContent = "Avería añadida";
         }
+
+        if (accion === "aplicar-mdmg") {
+          const i = await aplicarImpacto(nave, Number(boton.dataset.cantidad) || 1);
+          ui.notifications.info(`${nave.name}: ${i.absorbido ? "el Casco absorbe el impacto" : `MDMG ${i.total}`}.`);
+          boton.disabled = true;
+          boton.textContent = i.absorbido ? "Absorbido por el Casco" : `MDMG ${i.total} aplicado`;
+        }
       });
     });
   });

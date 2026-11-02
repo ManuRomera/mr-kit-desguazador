@@ -119,7 +119,20 @@ El *Informe tras la batalla* es la misma tirada de mantenimiento, tras un combat
 
 La macro *Megadaño* suma el MDMG a la nave y deja **una sola marca** en el registro, la del total, con su efecto (solo se aplica el efecto del total acumulado). El Casco ignora el MDMG inferior a su valor; si un impacto lo iguala o lo supera, el Casco queda destruido y la nave sufre el resto. Con 9 o más, la nave queda destruida.
 
-### Combate de naves
+### Cómo se dispara con una nave
+
+En Mothership las armas de una nave **no se tiran una a una**: cada arma suma su bonificación a la Característica de **Batalla** y fija el MDMG de la nave, y en la fase de ataque la nave hace **una sola tirada de Batalla** contra su objetivo. Por eso cada arma tiene un botón **Disparar**, en la pestaña Armas de la ficha de nave y en el Dossier, pero todos hacen esa misma tirada:
+
+1. Marca con **T** el token de la nave objetivo.
+2. Pulsa **Disparar** en cualquier arma ofensiva (o usa la macro *Disparar con la nave*).
+3. Elige Normal, Ventaja o Desventaja. La Ventaja por Clase superior se añade sola.
+4. **Éxito:** la nave inflige su MDMG al objetivo (doble con crítico), que lo recibe con su Casco. **Fallo:** la nave sufre 1 MDMG (2 con crítico) y todos a bordo ganan 1 de Estrés.
+
+La tirada de Batalla del objetivo la hace su propia nave cuando dispara. Si no tienes permiso sobre la nave objetivo, la tarjeta lleva un botón para que quien la controla aplique el MDMG.
+
+### Combate de naves (panel)
+
+El panel resuelve el movimiento, el ataque de las dos naves a la vez y la moral cuando el enemigo no tiene ficha o quieres llevarlo todo en una ventana.
 
 La macro *Combate de naves* abre un panel con las tres fases del manual y publica cada una en el chat:
 

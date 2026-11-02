@@ -5,6 +5,7 @@ import { MODULE, mdmgTotal, ajustarRecurso, valorMDMG, flagsNave, efectoMegadani
 import { ConAccesibilidad, guardarLocal, recordarLocal } from "./accesibilidad.js";
 import { sincronizarNave } from "./sincronizar.js";
 import * as macros from "./macros.js";
+import { dispararNave } from "./ataque.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const PLANTILLA = `modules/${MODULE}/templates/dossier.hbs`;
@@ -30,6 +31,7 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
       reparar: DossierNave.reparar,
       iniciales: DossierNave.iniciales,
       sincronizar: DossierNave.sincronizar,
+      disparar: DossierNave.disparar,
       abrirFicha: DossierNave.abrirFicha,
       abrirCompendio: DossierNave.abrirCompendio,
     },
@@ -152,6 +154,10 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
   static async sincronizar() {
     const cambios = await sincronizarNave(this.actor);
     ui.notifications.info(cambios ? `${this.actor.name}: cifras recalculadas.` : `${this.actor.name}: las cifras ya estaban al día.`);
+  }
+
+  static disparar(event, target) {
+    return dispararNave(this.actor, this.actor.items.get(target.dataset.itemId));
   }
 
   static abrirFicha() {

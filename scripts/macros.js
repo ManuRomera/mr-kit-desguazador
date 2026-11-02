@@ -2,6 +2,7 @@
  * Macros del Kit del Desguazador.
  * Se exponen en game.mrKit.macros y las macros del compendio llaman a estos métodos.
  */
+import { dispararNave } from "./ataque.js";
 import {
   aviso, elegirNave, elegirModo, tirarSistema, publicarTirada, filaDado, tarjeta,
   mdmgTotal, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
@@ -269,6 +270,12 @@ export function costes() {
 /* ------------------------------------------------------------------ */
 /* Aplicaciones                                                        */
 /* ------------------------------------------------------------------ */
+/** Disparo de la nave controlada (o elegida) contra la nave marcada como objetivo. */
+export async function disparar(nave = null) {
+  nave ??= await elegirNave();
+  return dispararNave(nave);
+}
+
 export const abrirDossier = () => game.mrKit.apps.abrirDossier();
 export const viaje = () => game.mrKit.apps.abrirViaje();
 export const combate = () => game.mrKit.apps.abrirCombate();

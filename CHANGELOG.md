@@ -11,6 +11,10 @@ Las tiradas pasan a ser las del sistema mosh.
 - Las tiradas del panel de combate interpretan Ventaja, Desventaja, críticos y el fallo automático con 90 o más con las mismas funciones del sistema.
 - La lista de megadaño de la ficha de nave repetía el número delante del efecto.
 
+### Nuevo
+
+- **Botón Disparar** en cada arma ofensiva de la ficha de nave y del Dossier, y macro «Disparar con la nave»: la tirada de Batalla de la nave contra la nave marcada como objetivo (T), con Ventaja por Clase, contramedidas, Casco y MDMG aplicado al objetivo. Es una sola tirada por ronda, como en el manual, no una por arma.
+
 ### Cambiado
 
 - El ajuste «Usar la tabla de averías del Kit» (que sustituía una función del sistema) es ahora «Usar las tablas del Kit en las tiradas del sistema»: el Kit responde con sus tablas cuando el sistema las pide, sin modificar los ajustes del sistema, así que al desactivar el módulo todo vuelve a ser como antes.

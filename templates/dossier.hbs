@@ -105,7 +105,7 @@
     {{#if armas.length}}
     <ul class="mr-kit-lista">
       {{#each armas}}
-      <li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong>{{#if defensiva}} <span class="mr-kit-rasgo">defensiva</span>{{/if}} <span class="mr-kit-bonus">+{{bonus}}</span></li>
+      <li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong>{{#if defensiva}} <span class="mr-kit-rasgo">defensiva</span>{{else}} <a data-action="disparar" data-item-id="{{id}}" class="mr-kit-boton-mini" data-tooltip="Tirada de Batalla contra la nave marcada como objetivo (T)"><i class="fa-solid fa-crosshairs"></i> Disparar</a>{{/if}} <span class="mr-kit-bonus">+{{bonus}}</span></li>
       {{/each}}
     </ul>
     {{else}}

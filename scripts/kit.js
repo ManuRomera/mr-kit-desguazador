@@ -10,6 +10,7 @@ import { CombateNaves } from "./combate.js";
 import { ViajeEspacial } from "./viaje.js";
 import { registrarAccesibilidad } from "./accesibilidad.js";
 import { registrarSincronizacion, sincronizarNave } from "./sincronizar.js";
+import { dispararNave } from "./ataque.js";
 
 const ultimaNave = () => game.user.getFlag(MODULE, "ultimaNave") ?? null;
 
@@ -116,4 +117,18 @@ Hooks.on("renderActorSheet", (app, html) => {
     apps.abrirDossier(app.actor);
   });
   nav.appendChild(enlace);
+
+  // Un botón Disparar en cada arma ofensiva de la pestaña de armas.
+  raiz.querySelectorAll('.tab[data-tab="weapons"] li.item[data-item-id]').forEach((fila) => {
+    const arma = app.actor.items.get(fila.dataset.itemId);
+    const controles = fila.querySelector(".item-controls");
+    if (!arma || arma.flags?.[MODULE]?.defensiva || !controles || controles.querySelector(".mr-kit-disparar")) return;
+    const a = document.createElement("a");
+    a.className = "item-control mr-kit-disparar";
+    a.dataset.tooltip = "Disparar: tirada de Batalla contra la nave marcada como objetivo (T)";
+    a.setAttribute("aria-label", `Disparar ${arma.name}`);
+    a.innerHTML = '<i class="fa-solid fa-crosshairs"></i>';
+    a.addEventListener("click", (ev) => { ev.preventDefault(); ev.stopPropagation(); dispararNave(app.actor, arma); });
+    controles.prepend(a);
+  });
 });
