@@ -1,0 +1,116 @@
+<div class="mr-kit-viaje-cuerpo">
+  <nav class="mr-kit-tabs" role="tablist">
+    <a role="tab" data-action="pestana" data-tab="nave" class="{{#if esNave}}activo{{/if}}" aria-selected="{{esNave}}">Mi nave: combustible y núcleos</a>
+    <a role="tab" data-action="pestana" data-tab="billetes" class="{{#if esBilletes}}activo{{/if}}" aria-selected="{{esBilletes}}">Billetes y fletes</a>
+  </nav>
+
+  {{#if esNave}}
+  <section class="mr-kit-panel">
+    <h3>Trayecto de la nave</h3>
+    <div class="mr-kit-form-grid">
+      <label>Nave
+        <select name="naveId" data-cambio>
+          {{#each naves}}
+          <option value="{{id}}" {{#if seleccionada}}selected{{/if}}>{{nombre}}</option>
+          {{/each}}
+        </select>
+      </label>
+      <label>Tipo de viaje
+        <select name="tipo" data-cambio>{{selectOptions tipos selected=e.tipo}}</select>
+      </label>
+      <label>Meses de viaje espacial{{#unless esInterplanetario}} (dentro del sistema){{/unless}}
+        <input type="number" name="meses" value="{{e.meses}}" min="0" step="0.5" />
+      </label>
+      <label>Cambios de rumbo (1 de combustible cada uno)
+        <input type="number" name="cambios" value="{{e.cambios}}" min="0" />
+      </label>
+      {{#unless esInterplanetario}}
+      <label>Saltos al hiperespacio
+        <input type="number" name="saltos" value="{{e.saltos}}" min="1" max="9" />
+      </label>
+      {{/unless}}
+      <label class="mr-kit-check">
+        <input type="checkbox" name="inyectores" {{#if e.inyectores}}checked{{/if}} />
+        Inyectores de combustible optimizados
+      </label>
+    </div>
+    <p class="mr-kit-nota">Orientación del manual para los meses: {{#each etapas}}{{this}}; {{/each}}el Guardián decide la duración real.</p>
+
+    <div class="mr-kit-acciones">
+      <button type="button" data-action="calcular"><i class="fa-solid fa-calculator"></i> Calcular</button>
+      {{#if resultado}}
+      <button type="button" data-action="gastar"><i class="fa-solid fa-gas-pump"></i> Aplicar gasto a la nave</button>
+      <button type="button" data-action="reiniciar"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
+      {{/if}}
+      {{#unless esInterplanetario}}
+      <button type="button" data-action="hiperespacio"><i class="fa-solid fa-dice-d20"></i> Tirar hiperespacio</button>
+      {{/unless}}
+    </div>
+  </section>
+
+  {{#if resultado}}
+  <section class="mr-kit-panel mr-kit-resultado-viaje">
+    <h3>{{resultado.tipo}}</h3>
+    <ul class="mr-kit-datos">
+      <li><span>Duración</span><strong>{{resultado.tiempo}}</strong></li>
+      <li><span>Combustible</span><strong>{{resultado.fuel}}</strong></li>
+      <li><span>Núcleos warp</span><strong>{{resultado.warp}}</strong></li>
+      <li><span>Coste estimado</span><strong>{{resultado.coste}}</strong></li>
+    </ul>
+    <p class="mr-kit-nota">{{resultado.detalle}}</p>
+  </section>
+  {{/if}}
+
+  <section class="mr-kit-panel">
+    <h3>Referencia rápida</h3>
+    <table>
+      <thead><tr><th>Acción</th><th>Combustible</th></tr></thead>
+      <tbody>
+        <tr><td>Encender propulsores (al mes)</td><td>1</td></tr>
+        <tr><td>Cambiar de rumbo</td><td>1</td></tr>
+        <tr><td>Evasión a alcance de contacto</td><td>3</td></tr>
+        <tr><td>Evasión a alcance de disparo</td><td>2</td></tr>
+        <tr><td>Evasión a alcance de detección</td><td>1</td></tr>
+        <tr><td>Salto al hiperespacio</td><td>1 núcleo warp</td></tr>
+      </tbody>
+    </table>
+    <p class="mr-kit-nota">Precio del combustible de Clase {{clase}}: {{precioFuel}} por unidad.</p>
+  </section>
+  {{/if}}
+
+  {{#if esBilletes}}
+  <section class="mr-kit-panel">
+    <h3>Billete o flete</h3>
+    <div class="mr-kit-form-grid">
+      <label>Tipo de viaje
+        <select name="bTipo" data-cambio>{{selectOptions tipos selected=e.bTipo}}</select>
+      </label>
+      <label>Servicio
+        <select name="bServicio" data-cambio>{{selectOptions servicios selected=e.bServicio}}</select>
+      </label>
+      {{#unless bFijo}}
+      <label>Pasajeros <input type="number" name="bPasajeros" value="{{e.bPasajeros}}" min="1" /></label>
+      {{/unless}}
+      {{#if bAdmiteCarga}}<label>Espacios de carga <input type="number" name="bCarga" value="{{e.bCarga}}" min="0" /></label>{{/if}}
+      {{#if bAdmiteHangar}}<label>Espacios de hangar <input type="number" name="bHangar" value="{{e.bHangar}}" min="0" /></label>{{/if}}
+      {{#if bMultiplicable}}<label>Destino <select name="bDestino">{{selectOptions destinos selected=e.bDestino}}</select></label>{{/if}}
+      {{#if bAdmiteSalto}}<label>Billete de Salto <select name="bSalto">{{selectOptions saltos selected=e.bSalto}}</select></label>{{/if}}
+      <label class="mr-kit-check"><input type="checkbox" name="bRemolque" {{#if e.bRemolque}}checked{{/if}} /> Remolque de nave (Clase II o inferior)</label>
+    </div>
+    <div class="mr-kit-acciones">
+      <button type="button" data-action="billete"><i class="fa-solid fa-ticket"></i> Calcular precio</button>
+      {{#if factura}}<button type="button" data-action="reiniciar"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>{{/if}}
+    </div>
+  </section>
+
+  {{#if factura}}
+  <section class="mr-kit-panel mr-kit-resultado-viaje">
+    <h3>Precio</h3>
+    <ul class="mr-kit-datos">
+      {{#each factura.lineas}}<li><span>{{texto}}</span><strong>{{valor}}</strong></li>{{/each}}
+      <li><span><strong>Total</strong></span><strong>{{factura.total}}</strong></li>
+    </ul>
+  </section>
+  {{/if}}
+  {{/if}}
+</div>

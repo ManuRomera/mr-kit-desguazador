@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MR- Kit del Desguazador</title>
+<meta name="description" content="El Shipbreakers Toolkit de Mothership en castellano para Foundry VTT: naves, averías, megadaño, combate naval y viajes.">
+<style>
+  :root { --fondo:#0b0c0e; --texto:#ececee; --suave:#a6a6ab; --acento:#d94a3d; --panel:#1c1c1e; }
+  @media (prefers-color-scheme: light) { :root { --fondo:#f4f4f4; --texto:#1a1915; --suave:#5f5f5f; --panel:#ffffff; } }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.55 "Helvetica Neue", Arial, sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:0 16px 48px; }
+  img { max-width:100%; height:auto; display:block; border-radius:10px; }
+  h1, h2 { font-family:"Arial Narrow", "Helvetica Neue", Arial, sans-serif; text-transform:uppercase; letter-spacing:.04em; }
+  h2 { border-bottom:1px solid var(--acento); padding-bottom:4px; margin-top:2em; }
+  a { color:var(--acento); }
+  .boton { display:inline-block; background:#111; color:#fff; padding:10px 22px; border-radius:21px; font-weight:bold; text-decoration:none; margin:6px 6px 6px 0; border:1px solid #444; }
+  .boton:hover { background:#2e2e32; }
+  code { background:var(--panel); padding:2px 6px; border-radius:4px; word-break:break-all; }
+  .rejilla { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; }
+  footer { color:var(--suave); font-size:.85em; margin-top:3em; }
+</style>
+</head>
+<body>
+<main>
+  <img src="img/banner.webp" alt="MR- Kit del Desguazador: Shipbreakers Toolkit de Mothership en castellano para Foundry VTT" style="border-radius:0;margin:0 -16px;max-width:none;width:calc(100% + 32px)">
+  <h1>MR- Kit del Desguazador</h1>
+  <p>Las naves del <em>Shipbreakers Toolkit</em> de Mothership, sus mejoras, armas, averías de mantenimiento, megadaño, combate naval, viajes y costes, en castellano y dentro de la ficha de nave del sistema <strong>mosh</strong>. Con el mismo aspecto que tus hojas de Mothership y compatible con el resto de módulos MR-.</p>
+  <p>
+    <a class="boton" href="https://github.com/ManuRomera/mr-kit-desguazador/releases/latest">Descargar</a>
+    <a class="boton" href="https://github.com/ManuRomera/mr-kit-desguazador#readme">Leer el README</a>
+  </p>
+
+  <h2>Instalar</h2>
+  <p>En Foundry VTT, <em>Instalar módulo</em>, pega este manifiesto:</p>
+  <p><code>https://github.com/ManuRomera/mr-kit-desguazador/releases/latest/download/module.json</code></p>
+  <p>Necesita Foundry VTT v13 y el sistema <strong>mosh</strong> (MoSh – Unofficial Mothership) 0.6.1 o superior. Recomendado: <a href="https://github.com/ManuRomera/mr-mothership-es">MR- Mothership en español</a>.</p>
+
+  <h2>Así se ve</h2>
+  <div class="rejilla">
+    <img src="img/dossier.webp" alt="Dossier de nave y tarjetas del chat">
+    <img src="img/dossier-oscuro.webp" alt="Dossier con el modo oscuro">
+    <img src="img/combate.webp" alt="Combate nave contra nave">
+    <img src="img/viaje.webp" alt="Calculadora de viaje y billetes">
+  </div>
+
+  <footer>
+    Módulo no oficial de <a href="https://github.com/ManuRomera">Manu Romera</a>. <em>Mothership</em> y <em>Shipbreakers Toolkit</em> son obras de Tuesday Knight Games.
+    Consulta el <a href="https://github.com/ManuRomera/mr-kit-desguazador/blob/main/NOTICE.md">aviso legal</a>.
+  </footer>
+</main>
+</body>
+</html>

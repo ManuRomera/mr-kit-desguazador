@@ -1,0 +1,149 @@
+{
+  "id": "mr-kit-desguazador",
+  "title": "MR- Kit del Desguazador",
+  "description": "Contenido completo del Kit del Desguazador (Shipbreakers Toolkit) para Mothership en español: las 10 naves del manual, 30 mejoras, 8 armas de nave, 6 naves de Clase 0, las 100 averías de mantenimiento, tablas de megadaño, socorro, quiebra, contrabando y restos, las reglas de viaje, detección, combate naval y reparaciones, los costes y los ejemplos de juego. Dossier de nave con el aspecto de las hojas de Mothership, combate naval, calculadora de viaje y billetes, cifras de la nave siempre al día, modo oscuro y accesibilidad compartidos con MR- Mothership en español.",
+  "version": "1.2.0",
+  "authors": [
+    {
+      "name": "Manu Romera",
+      "url": "https://github.com/ManuRomera"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "mosh",
+        "type": "system",
+        "compatibility": {
+          "minimum": "0.6.1"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "mr-mothership-es",
+        "type": "module",
+        "manifest": "https://github.com/ManuRomera/mr-mothership-es/releases/latest/download/module.json",
+        "reason": "Traducción del sistema mosh, modo oscuro y accesibilidad compartidos con el Kit del Desguazador."
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/kit.js"
+  ],
+  "styles": [
+    "styles/kit.css"
+  ],
+  "url": "https://github.com/ManuRomera/mr-kit-desguazador",
+  "manifest": "https://github.com/ManuRomera/mr-kit-desguazador/releases/latest/download/module.json",
+  "download": "https://github.com/ManuRomera/mr-kit-desguazador/releases/latest/download/mr-kit-desguazador.zip",
+  "bugs": "https://github.com/ManuRomera/mr-kit-desguazador/issues",
+  "readme": "https://github.com/ManuRomera/mr-kit-desguazador#readme",
+  "changelog": "https://github.com/ManuRomera/mr-kit-desguazador/blob/main/CHANGELOG.md",
+  "license": "MIT",
+  "packs": [
+    {
+      "name": "naves",
+      "label": "Naves (Kit del Desguazador)",
+      "path": "packs/naves",
+      "type": "Actor",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "mejoras",
+      "label": "Mejoras de nave",
+      "path": "packs/mejoras",
+      "type": "Item",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "armas-nave",
+      "label": "Armas de nave",
+      "path": "packs/armas-nave",
+      "type": "Item",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "naves-clase-0",
+      "label": "Naves de Clase 0",
+      "path": "packs/naves-clase-0",
+      "type": "Item",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "vehiculos",
+      "label": "Vehículos y equipo de nave",
+      "path": "packs/vehiculos",
+      "type": "Item",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "averias",
+      "label": "Averías de mantenimiento (d100)",
+      "path": "packs/averias",
+      "type": "Item",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "tablas",
+      "label": "Tablas del Kit del Desguazador",
+      "path": "packs/tablas",
+      "type": "RollTable",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "reglas",
+      "label": "Reglas del Kit del Desguazador",
+      "path": "packs/reglas",
+      "type": "JournalEntry",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "macros",
+      "label": "Macros del Kit del Desguazador",
+      "path": "packs/macros",
+      "type": "Macro",
+      "system": "mosh",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ]
+}

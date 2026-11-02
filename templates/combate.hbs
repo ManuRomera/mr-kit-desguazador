@@ -1,0 +1,100 @@
+<div class="mr-kit-combate-cuerpo">
+  {{#if aviso}}<p class="mr-kit-efecto">{{aviso}}</p>{{/if}}
+  <div class="mr-kit-grid-2">
+    <section class="mr-kit-panel">
+      <h3>Mi nave</h3>
+      <div class="form-group">
+        <label>Nave
+          <select name="naveId">
+            {{#each naves}}
+            <option value="{{id}}" {{#if seleccionada}}selected{{/if}}>{{nombre}}</option>
+            {{/each}}
+          </select>
+        </label>
+      </div>
+      {{#if nave}}
+      <ul class="mr-kit-datos">
+        <li><span>Propulsores</span><strong>{{nave.system.stats.thrusters.value}}</strong></li>
+        <li><span>Batalla</span><strong>{{nave.system.stats.battle.value}}</strong></li>
+        <li><span>Sistemas</span><strong>{{nave.system.stats.systems.value}}</strong></li>
+        <li><span>Combustible</span><strong>{{nave.system.supplies.fuel.value}} / {{nave.system.supplies.fuel.max}}</strong></li>
+        <li><span>Casco</span><strong>{{nave.system.supplies.hull.value}}</strong></li>
+        <li><span>MDMG acumulado</span><strong>{{mdmgNave}}</strong></li>
+        <li><span>MDMG por impacto</span><strong>{{mdmgDado}}</strong></li>
+      </ul>
+      <p class="mr-kit-nota">Efecto actual: {{efectoNave}}</p>
+      {{else}}
+      <p class="mr-kit-nota">Importa una nave del compendio «Naves» para empezar.</p>
+      {{/if}}
+    </section>
+
+    <section class="mr-kit-panel">
+      <h3>Nave enemiga</h3>
+      <div class="mr-kit-form-grid">
+        <label>Nombre <input type="text" name="enemigoNombre" value="{{enemigo.nombre}}" /></label>
+        <label>Clase <input type="number" name="enemigoClase" value="{{enemigo.clase}}" min="0" max="9" /></label>
+        <label>Propulsores <input type="number" name="enemigoPro" value="{{enemigo.pro}}" min="0" max="99" /></label>
+        <label>Batalla <input type="number" name="enemigoBat" value="{{enemigo.bat}}" min="0" max="99" /></label>
+        <label>Sistemas <input type="number" name="enemigoSis" value="{{enemigo.sis}}" min="0" max="99" /></label>
+        <label>Casco <input type="number" name="enemigoCasco" value="{{enemigo.casco}}" min="0" max="9" /></label>
+        <label>MDMG por impacto <input type="text" name="enemigoDmg" value="{{enemigo.dmg}}" /></label>
+        <label class="mr-kit-check"><input type="checkbox" name="enemigoArmas" {{#if enemigo.armas}}checked{{/if}} /> Armas operativas</label>
+      </div>
+      <ul class="mr-kit-datos">
+        <li><span>MDMG acumulado</span><strong>{{enemigo.mdmg}}</strong></li>
+      </ul>
+      <p class="mr-kit-nota">Efecto actual: {{efectoEnemigo}}</p>
+    </section>
+  </div>
+
+  <section class="mr-kit-panel">
+    <h3>Distancia</h3>
+    <div class="mr-kit-fila">
+      <select name="distancia" aria-label="Banda de alcance">
+        {{selectOptions distancias selected=distancia}}
+      </select>
+      <span class="mr-kit-nota">Coste mínimo para evadir: <strong>{{costeEvasion}}</strong> de combustible.</span>
+    </div>
+  </section>
+
+  <section class="mr-kit-panel">
+    <h3>1 · Fase de movimiento</h3>
+    <div class="mr-kit-form-grid">
+      <label>Mi postura <select name="postura">{{selectOptions posturas selected=mov.postura}}</select></label>
+      <label>Postura enemiga <select name="posturaEnemiga">{{selectOptions posturas selected=mov.posturaEnemiga}}</select></label>
+      <label>Combustible propio <input type="number" name="fuelPropia" value="{{mov.fuelPropia}}" min="0" /></label>
+      <label>Combustible enemigo <input type="number" name="fuelEnemiga" value="{{mov.fuelEnemiga}}" min="0" /></label>
+    </div>
+    <p class="mr-kit-nota">Quien quema más combustible tira con [+]. Si una nave mantiene el rumbo, la otra logra su objetivo sin tirar.</p>
+    <button type="button" data-action="movimiento"><i class="fa-solid fa-arrows-left-right"></i> Resolver movimiento</button>
+  </section>
+
+  <section class="mr-kit-panel">
+    <h3>2 · Fase de ataque</h3>
+    <p class="mr-kit-nota">A alcance de disparo o contacto (a detección, solo el cañón de riel). Un éxito inflige el MDMG de la nave; un crítico lo duplica; un fallo añade 1 MDMG propio (2 con fallo crítico). El Casco ignora el MDMG inferior a su valor.</p>
+    <button type="button" data-action="ataque"><i class="fa-solid fa-crosshairs"></i> Resolver ataque</button>
+  </section>
+
+  <section class="mr-kit-panel">
+    <h3>3 · Fase de moral</h3>
+    <p class="mr-kit-nota">Si el enemigo ha sufrido MDMG, tira 1d10: si saca menos que su MDMG, puede ofrecer un alto el fuego.</p>
+    <div class="mr-kit-acciones">
+      <button type="button" data-action="moral"><i class="fa-solid fa-flag"></i> Tirar moral enemiga</button>
+      <button type="button" data-action="mdmgEnemigo"><i class="fa-solid fa-plus"></i> +1 MDMG enemigo</button>
+      <button type="button" data-action="ronda"><i class="fa-solid fa-forward"></i> Siguiente ronda</button>
+      <button type="button" data-action="informe"><i class="fa-solid fa-clipboard-check"></i> Informe tras la batalla</button>
+      <button type="button" data-action="reiniciar"><i class="fa-solid fa-rotate-left"></i> Reiniciar</button>
+    </div>
+  </section>
+
+  <section class="mr-kit-panel">
+    <h3>Registro</h3>
+    <div class="mr-kit-log">
+      {{#each log}}
+      <div class="mr-kit-log-linea"><span class="mr-kit-log-ronda">R{{ronda}}</span> <span>{{{texto}}}</span></div>
+      {{else}}
+      <p class="mr-kit-nota">Todavía no hay acciones registradas.</p>
+      {{/each}}
+    </div>
+  </section>
+</div>

@@ -1,0 +1,34 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Versión del tag = versión del módulo
+        run: test "v$(node -p "require('./module.json').version")" = "${GITHUB_REF_NAME}"
+      - name: Compilar los compendios
+        run: |
+          npm ci
+          node tools/contenido.mjs
+          node tools/build.mjs
+      - name: Empaquetar (el mismo script que en local)
+        run: node scripts/zip.mjs
+      - name: Notas de la release
+        run: |
+          V=$(node -p "require('./module.json').version")
+          awk -v v="$V" '$0 ~ "^## "v" " {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "MR- Kit del Desguazador v$V" > notes.md
+      - name: Publicar la release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: notes.md
+          files: |
+            dist/module.json
+            dist/mr-kit-desguazador.zip

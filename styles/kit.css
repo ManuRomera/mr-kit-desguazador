@@ -1,0 +1,805 @@
+/* ==================================================================
+   MR- Kit del Desguazador
+   Mismo aspecto que las hojas del sistema mosh (blanco y negro, píldoras, círculos) y, como ellas,
+   se oscurece con el modo oscuro de MR- Mothership en español (body.mr-mosh-oscuro).
+   Los ajustes de accesibilidad son los suyos: --mr-escala y las clases body.mr-mosh-*.
+   Regla de la casa: nunca tocar font-family/font en button, i ni .window-header (rompe los iconos).
+   ================================================================== */
+
+.mr-kit,
+.mr-kit-dialogo,
+.mr-kit-card {
+  --mrk-fondo: #ffffff;
+  --mrk-fondo-2: #e6e6e6;
+  --mrk-fondo-3: #d4d4d4;
+  --mrk-borde: #111111;
+  --mrk-borde-suave: #b5b5b5;
+  --mrk-texto: #1a1915;
+  --mrk-texto-suave: #5f5f5f;
+  --mrk-tinta: #111111;
+  --mrk-tinta-texto: #ffffff;
+  --mrk-peligro: #750000;
+  --mrk-ok: #1f6b3a;
+  --mrk-aviso: #8a5a00;
+}
+
+body.mr-mosh-oscuro .mr-kit,
+body.mr-mosh-oscuro .mr-kit-dialogo,
+body.mr-mosh-oscuro .mr-kit-card {
+  --mrk-fondo: #1c1c1e;
+  --mrk-fondo-2: #2e2e32;
+  --mrk-fondo-3: #3a3a3e;
+  --mrk-borde: #6e6e75;
+  --mrk-borde-suave: #3e3e43;
+  --mrk-texto: #ececee;
+  --mrk-texto-suave: #a6a6ab;
+  --mrk-tinta: #2e2e32;
+  --mrk-tinta-texto: #ececee;
+  --mrk-peligro: #ff7a6b;
+  --mrk-ok: #7fd49a;
+  --mrk-aviso: #f0c070;
+}
+
+/* ----------------------------- Ventanas ---------------------------- */
+.mr-kit.application {
+  background: var(--mrk-fondo);
+  color: var(--mrk-texto);
+  font-family: "Roboto", sans-serif;
+}
+
+.mr-kit .window-header {
+  background: #111;
+  color: #fff;
+}
+
+body.mr-mosh-oscuro .mr-kit .window-header {
+  background: #2e2e32;
+}
+
+.mr-kit .window-content {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--mrk-fondo);
+  zoom: var(--mr-escala, 1);
+}
+
+.mr-kit-dialogo .window-content {
+  color: var(--mrk-texto);
+  zoom: var(--mr-escala, 1);
+}
+
+.mr-kit-dossier-cuerpo,
+.mr-kit-combate-cuerpo,
+.mr-kit-viaje-cuerpo {
+  padding: 12px 14px 18px;
+  overflow-y: auto;
+  height: 100%;
+  color: var(--mrk-texto);
+  font-size: 13px;
+}
+
+/* ----------------------------- Cabecera ---------------------------- */
+.mr-kit-cabecera {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: #111;
+  color: #fff;
+  border-radius: 21px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+body.mr-mosh-oscuro .mr-kit-cabecera {
+  background: var(--mrk-fondo-2);
+  color: var(--mrk-texto);
+  border: 1px solid var(--mrk-borde);
+}
+
+.mr-kit-nave-img {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  background: #fff;
+  border: 2px solid #fff;
+  border-radius: 14px;
+  padding: 4px;
+  flex: 0 0 auto;
+  cursor: zoom-in;
+}
+
+.mr-kit-cabecera-datos h2 {
+  margin: 0 0 2px;
+  border: none;
+  font-family: "Futura PT Cond Bold", "Roboto", sans-serif;
+  font-size: 1.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: inherit;
+}
+
+.mr-kit-modelo {
+  color: #cfcfcf;
+  font-size: 0.9em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+body.mr-mosh-oscuro .mr-kit-modelo {
+  color: var(--mrk-texto-suave);
+}
+
+.mr-kit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  color: #d8d8d8;
+  font-size: 0.9em;
+}
+
+.mr-kit-meta strong {
+  color: #fff;
+}
+
+body.mr-mosh-oscuro .mr-kit-meta,
+body.mr-mosh-oscuro .mr-kit-meta strong {
+  color: var(--mrk-texto);
+}
+
+/* ----------------------------- Pestañas ---------------------------- */
+.mr-kit-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  background: #111;
+  border-radius: 21px;
+  padding: 8px 18px;
+  margin-bottom: 14px;
+}
+
+body.mr-mosh-oscuro .mr-kit-tabs {
+  background: var(--mrk-fondo-2);
+  border: 1px solid var(--mrk-borde);
+}
+
+.mr-kit-tabs a {
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.95em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 0;
+  border-bottom: 2px solid transparent;
+}
+
+body.mr-mosh-oscuro .mr-kit-tabs a {
+  color: var(--mrk-texto-suave);
+}
+
+.mr-kit-tabs a:hover {
+  border-bottom-color: #888;
+}
+
+.mr-kit-tabs a.activo {
+  border-bottom-color: #fff;
+}
+
+body.mr-mosh-oscuro .mr-kit-tabs a.activo {
+  color: var(--mrk-texto);
+  border-bottom-color: var(--mrk-texto);
+}
+
+/* ----------------------------- Secciones --------------------------- */
+.mr-kit-seccion h3,
+.mr-kit-panel h3 {
+  font-family: "Futura PT Cond Bold", "Roboto", sans-serif;
+  font-size: 1.1em;
+  margin: 14px 0 8px;
+  padding-bottom: 3px;
+  border: none;
+  border-bottom: 1px solid var(--mrk-peligro);
+  color: var(--mrk-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mr-kit-seccion h3 small,
+.mr-kit-panel h3 small {
+  color: var(--mrk-texto-suave);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.mr-kit-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mr-kit-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Características: círculo con el valor, como en la ficha de la nave */
+.mr-kit-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--mrk-fondo-2);
+  border-radius: 14px;
+  padding: 12px 8px 10px;
+}
+
+.mr-kit-stat-nombre {
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mrk-texto);
+  order: 2;
+}
+
+.mr-kit-stat-valor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  border: 4px solid var(--mrk-borde);
+  border-radius: 50%;
+  background: var(--mrk-fondo);
+  font-size: 2.2em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--mrk-texto);
+  order: 1;
+}
+
+.mr-kit-stat .mr-kit-boton-mini {
+  order: 3;
+}
+
+.mr-kit-boton-mini {
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 3px 12px;
+  border-radius: 21px;
+  background: var(--mrk-tinta);
+  color: var(--mrk-tinta-texto);
+  cursor: pointer;
+}
+
+.mr-kit-boton-mini:hover {
+  box-shadow: 0 0 8px 0 #9e9e9e;
+}
+
+/* ----------------------------- Recursos ---------------------------- */
+.mr-kit-recursos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.mr-kit-recurso {
+  background: var(--mrk-fondo-2);
+  border-radius: 14px;
+  padding: 7px 12px;
+}
+
+.mr-kit-recurso label {
+  display: block;
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mrk-texto-suave);
+  margin-bottom: 2px;
+}
+
+.mr-kit-contador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.mr-kit-contador a {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--mrk-tinta);
+  color: var(--mrk-tinta-texto);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.mr-kit-contador a:hover {
+  box-shadow: 0 0 8px 0 #9e9e9e;
+}
+
+/* ----------------------------- Listas ------------------------------ */
+.mr-kit-lista {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mr-kit-lista li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--mrk-fondo-2);
+  border-radius: 10px;
+  padding: 5px 12px;
+}
+
+.mr-kit-lista li img {
+  border: none;
+  border-radius: 3px;
+}
+
+.mr-kit-lista li.mayor {
+  border-left: 4px solid var(--mrk-peligro);
+}
+
+.mr-kit-lista.averias li span {
+  flex: 1;
+}
+
+.mr-kit-bonus {
+  margin-left: auto;
+  font-weight: 800;
+}
+
+.mr-kit-rasgo {
+  margin-left: auto;
+  color: var(--mrk-texto-suave);
+  font-size: 0.85em;
+}
+
+.mr-kit-cubiertas {
+  margin: 0 0 10px;
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mr-kit-notas {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* ----------------------------- MDMG -------------------------------- */
+.mr-kit-mdmg {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.mr-kit-circulo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--mrk-borde);
+  background: var(--mrk-fondo);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--mrk-texto-suave);
+}
+
+.mr-kit-circulo:hover {
+  box-shadow: 0 0 8px 0 #9e9e9e;
+}
+
+.mr-kit-circulo.activo {
+  background: var(--mrk-tinta);
+  color: var(--mrk-tinta-texto);
+}
+
+.mr-kit-circulo.ultimo {
+  border-color: var(--mrk-peligro);
+  box-shadow: 0 0 0 3px var(--mrk-peligro);
+}
+
+/* ----------------------------- Botones ----------------------------- */
+.mr-kit-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.mr-kit-acciones button,
+.mr-kit-panel > button,
+.mr-kit-averia button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 21px;
+  background: var(--mrk-tinta);
+  color: var(--mrk-tinta-texto);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9em;
+  line-height: 1.3;
+}
+
+.mr-kit-acciones button:hover,
+.mr-kit-panel > button:hover,
+.mr-kit-averia button:hover {
+  text-shadow: 0 0 10px rgb(112, 112, 112);
+  box-shadow: 0 0 10px 0 #9e9e9e;
+}
+
+.mr-kit-acciones button:disabled,
+.mr-kit-panel > button:disabled,
+.mr-kit-averia button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ----------------------------- Paneles ----------------------------- */
+.mr-kit-panel {
+  background: var(--mrk-fondo-2);
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.mr-kit-panel h3 {
+  margin-top: 0;
+}
+
+.mr-kit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mr-kit-form-grid label,
+.mr-kit-panel .form-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.78em;
+  font-weight: bold;
+  color: var(--mrk-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mr-kit-form-grid input,
+.mr-kit-form-grid select,
+.mr-kit-panel select,
+.mr-kit-panel input {
+  background: var(--mrk-fondo);
+  border: 2px solid var(--mrk-borde);
+  border-radius: 8px;
+  color: var(--mrk-texto);
+  padding: 3px 8px;
+  font-size: 1.1em;
+  height: auto;
+}
+
+.mr-kit-check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px !important;
+  text-transform: none !important;
+}
+
+.mr-kit-check input {
+  width: auto;
+}
+
+.mr-kit-datos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 14px;
+}
+
+.mr-kit-datos li {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--mrk-borde-suave);
+  padding: 3px 0;
+}
+
+.mr-kit-datos span {
+  color: var(--mrk-texto-suave);
+}
+
+.mr-kit-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mr-kit-panel table,
+.mr-kit-dialogo table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.mr-kit-panel th,
+.mr-kit-dialogo th {
+  background: var(--mrk-tinta);
+  color: var(--mrk-tinta-texto);
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.06em;
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.mr-kit-panel td,
+.mr-kit-dialogo td {
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--mrk-borde-suave);
+}
+
+/* ----------------------------- Registro ---------------------------- */
+.mr-kit-log {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mr-kit-log-linea {
+  background: var(--mrk-fondo);
+  border-left: 4px solid var(--mrk-borde);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.9em;
+}
+
+.mr-kit-log-ronda {
+  color: var(--mrk-peligro);
+  font-weight: 800;
+  margin-right: 6px;
+}
+
+.mr-kit-nota {
+  color: var(--mrk-texto-suave);
+  font-size: 0.88em;
+  font-style: italic;
+}
+
+.mr-kit-biografia {
+  line-height: 1.45;
+}
+
+.mr-kit-biografia h3 {
+  margin-top: 14px;
+}
+
+.mr-kit-biografia table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mr-kit-biografia th {
+  background: var(--mrk-tinta);
+  color: var(--mrk-tinta-texto);
+  text-transform: uppercase;
+  font-size: 0.8em;
+  padding: 3px 8px;
+}
+
+.mr-kit-biografia td {
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--mrk-borde-suave);
+}
+
+.mr-kit-efecto {
+  background: rgba(117, 0, 0, 0.1);
+  border-left: 4px solid var(--mrk-peligro);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.mr-kit-vacio {
+  text-align: center;
+  color: var(--mrk-texto-suave);
+  padding: 40px 0;
+}
+
+/* -------------------------- Tarjetas del chat ---------------------- */
+/* El marco, la cabecera negra y el icono son los del sistema (.mosh .rollcontainer). */
+.mosh.mr-kit-card .rollcontainer {
+  padding-bottom: 0.5rem;
+}
+
+.mr-kit-card .rollmods {
+  margin-top: 0;
+}
+
+.mr-kit-card .description {
+  margin-bottom: 4px;
+}
+
+.mr-kit-card .body p {
+  margin: 4px 0;
+}
+
+.mr-kit-dados {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 6px 0;
+}
+
+.mr-kit-dado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  border: 2px solid var(--mrk-borde);
+  border-radius: 10px;
+  font-size: 1.3em;
+  font-weight: 800;
+}
+
+.mr-kit-resultado {
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 6px 0 8px;
+  padding: 6px;
+  border: 2px solid var(--mrk-borde);
+  border-radius: 1em;
+}
+
+.mr-kit-resultado.ok {
+  color: var(--mrk-ok);
+}
+
+.mr-kit-resultado.mal {
+  color: var(--mrk-peligro);
+}
+
+.mr-kit-critico {
+  color: var(--mrk-peligro);
+  font-weight: 700;
+}
+
+.mr-kit-averia {
+  border: 1px solid var(--mrk-borde-suave);
+  border-left: 5px solid #5a6470;
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin: 8px 0;
+  background: var(--mrk-fondo-2);
+}
+
+.mr-kit-averia.mayor {
+  border-left-color: var(--mrk-peligro);
+}
+
+.mr-kit-averia.menor {
+  border-left-color: var(--mrk-aviso);
+}
+
+.mr-kit-averia-titulo {
+  font-size: 0.78em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mrk-texto-suave);
+  margin-bottom: 3px;
+}
+
+.mr-kit-averia button {
+  margin-top: 6px;
+  font-size: 0.82em;
+  padding: 3px 12px;
+}
+
+/* ------------------- Pestaña Dossier en la ficha de nave ----------- */
+#sheet-tabs .mr-kit-dossier-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #f0a06a;
+}
+
+#sheet-tabs .mr-kit-dossier-tab:hover {
+  color: #fff;
+}
+
+/* ------------------------------ Diálogos --------------------------- */
+.mr-kit-fila-check,
+.mr-a11y .mr-a11y-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.mr-kit-fila-check small,
+.mr-a11y .mr-a11y-fila small {
+  display: block;
+  color: var(--mrk-texto-suave);
+}
+
+.mr-a11y .mr-a11y-fila span {
+  flex: 1;
+}
+
+.mr-a11y .mr-a11y-fila input[type="number"] {
+  width: 70px;
+  flex: none;
+}
+
+/* ---------------------------- Accesibilidad ------------------------ */
+body.mr-mosh-contraste .mr-kit .window-content,
+body.mr-mosh-contraste .mr-kit-dialogo .window-content,
+body.mr-mosh-contraste .chat-message .mr-kit-card {
+  filter: contrast(1.35);
+}
+
+body.mr-mosh-legible .mr-kit .window-content,
+body.mr-mosh-legible .mr-kit .window-content :is(input, textarea, select),
+body.mr-mosh-legible .mr-kit .window-content button:not([class*="fa-"]),
+body.mr-mosh-legible .mr-kit-card {
+  font-family: Verdana, "Atkinson Hyperlegible", system-ui, sans-serif !important;
+  letter-spacing: 0.02em;
+}
+
+body.mr-mosh-movimiento .mr-kit *,
+body.mr-mosh-movimiento .mr-kit-dialogo *,
+body.mr-mosh-movimiento .mr-kit-card * {
+  transition: none !important;
+  animation: none !important;
+}
+
+.mr-kit :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--mrk-peligro);
+  outline-offset: 2px;
+}
+
+.mr-kit-tabs a,
+.mr-kit-contador a,
+.mr-kit-circulo,
+.mr-kit-boton-mini {
+  user-select: none;
+}

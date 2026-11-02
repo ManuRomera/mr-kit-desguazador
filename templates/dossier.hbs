@@ -1,0 +1,213 @@
+<div class="mr-kit-dossier-cuerpo">
+  {{#if vacio}}
+    <p class="mr-kit-vacio">No hay ninguna nave asociada a este dossier.</p>
+  {{else}}
+  <header class="mr-kit-cabecera">
+    <img class="mr-kit-nave-img" src="{{actor.img}}" alt="{{actor.name}}" data-tooltip-html="&lt;img src=&quot;{{actor.img}}&quot; style=&quot;width:320px;background:#fff;padding:8px;border-radius:8px&quot;&gt;" />
+    <div class="mr-kit-cabecera-datos">
+      <h2>{{actor.name}}</h2>
+      <div class="mr-kit-modelo">{{flags.modelo}}</div>
+      <div class="mr-kit-meta">
+        <span><strong>Clase</strong> {{sistema.class}}</span>
+        <span><strong>Salto</strong> {{flags.salto}}</span>
+        <span><strong>Coste</strong> {{coste}}</span>
+        <span><strong>Eslora</strong> {{eslora}}</span>
+      </div>
+      <div class="mr-kit-meta">
+        <span><strong>Casco</strong> {{sistema.supplies.hull.value}} / {{sistema.supplies.hull.max}}</span>
+        <span><strong>MDMG acumulado</strong> {{mdmg}}</span>
+        <span><strong>MDMG por impacto</strong> {{mdmgDado}}</span>
+        <span><strong>Anclajes</strong> {{anclajes.usados}} / {{anclajes.max}}</span>
+        <span><strong>Mejoras</strong> {{mejoras.usadas}} / {{mejoras.max}}</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="mr-kit-tabs" role="tablist">
+    {{#each pestanas}}
+    <a role="tab" data-action="pestana" data-tab="{{id}}" class="{{#if activa}}activo{{/if}}" aria-selected="{{activa}}">{{nombre}}</a>
+    {{/each}}
+  </nav>
+
+  {{#if esResumen}}
+  <section class="mr-kit-seccion">
+    <div class="mr-kit-grid-3">
+      <div class="mr-kit-stat">
+        <span class="mr-kit-stat-nombre">Propulsores</span>
+        <span class="mr-kit-stat-valor">{{sistema.stats.thrusters.value}}</span>
+        <a data-action="tirada" data-car="thrusters" class="mr-kit-boton-mini"><i class="fa-solid fa-dice-d20"></i> Tirar</a>
+      </div>
+      <div class="mr-kit-stat">
+        <span class="mr-kit-stat-nombre">Batalla</span>
+        <span class="mr-kit-stat-valor">{{sistema.stats.battle.value}}</span>
+        <a data-action="tirada" data-car="battle" class="mr-kit-boton-mini"><i class="fa-solid fa-dice-d20"></i> Tirar</a>
+      </div>
+      <div class="mr-kit-stat">
+        <span class="mr-kit-stat-nombre">Sistemas</span>
+        <span class="mr-kit-stat-valor">{{sistema.stats.systems.value}}</span>
+        <a data-action="tirada" data-car="systems" class="mr-kit-boton-mini"><i class="fa-solid fa-dice-d20"></i> Tirar</a>
+      </div>
+    </div>
+
+    <h3>Recursos</h3>
+    <div class="mr-kit-recursos">
+      <div class="mr-kit-recurso">
+        <label>Casco</label>
+        <div class="mr-kit-contador">
+          <a data-action="ajustar" data-ruta="system.supplies.hull.value" data-delta="-1" aria-label="Quitar 1 de Casco">−</a>
+          <span>{{sistema.supplies.hull.value}} / {{sistema.supplies.hull.max}}</span>
+          <a data-action="ajustar" data-ruta="system.supplies.hull.value" data-delta="1" aria-label="Añadir 1 de Casco">+</a>
+        </div>
+      </div>
+      <div class="mr-kit-recurso">
+        <label>Combustible</label>
+        <div class="mr-kit-contador">
+          <a data-action="ajustar" data-ruta="system.supplies.fuel.value" data-delta="-1" aria-label="Quitar 1 de combustible">−</a>
+          <span>{{sistema.supplies.fuel.value}} / {{sistema.supplies.fuel.max}}</span>
+          <a data-action="ajustar" data-ruta="system.supplies.fuel.value" data-delta="1" aria-label="Añadir 1 de combustible">+</a>
+        </div>
+      </div>
+      <div class="mr-kit-recurso">
+        <label>Núcleos warp</label>
+        <div class="mr-kit-contador">
+          <a data-action="ajustar" data-ruta="system.supplies.warp-cores.value" data-delta="-1" aria-label="Quitar 1 núcleo warp">−</a>
+          <span>{{sistema.supplies.warp-cores.value}}</span>
+          <a data-action="ajustar" data-ruta="system.supplies.warp-cores.value" data-delta="1" aria-label="Añadir 1 núcleo warp">+</a>
+        </div>
+      </div>
+      <div class="mr-kit-recurso">
+        <label>Tripulación</label>
+        <div class="mr-kit-contador">
+          <a data-action="ajustar" data-ruta="system.supplies.crew.value" data-delta="-1" aria-label="Quitar 1 tripulante">−</a>
+          <span>{{sistema.supplies.crew.value}} / {{sistema.supplies.crew.max}}</span>
+          <a data-action="ajustar" data-ruta="system.supplies.crew.value" data-delta="1" aria-label="Añadir 1 tripulante">+</a>
+        </div>
+      </div>
+      <div class="mr-kit-recurso">
+        <label>Criocápsulas</label>
+        <div class="mr-kit-contador">
+          <a data-action="ajustar" data-ruta="system.supplies.cryopods.value" data-delta="-1" aria-label="Quitar 1 criocápsula">−</a>
+          <span>{{sistema.supplies.cryopods.value}}</span>
+          <a data-action="ajustar" data-ruta="system.supplies.cryopods.value" data-delta="1" aria-label="Añadir 1 criocápsula">+</a>
+        </div>
+      </div>
+      <div class="mr-kit-recurso">
+        <label>Cápsulas de escape</label>
+        <div class="mr-kit-contador">
+          <a data-action="ajustar" data-ruta="system.supplies.escape-pods.value" data-delta="-1" aria-label="Quitar 1 cápsula de escape">−</a>
+          <span>{{sistema.supplies.escape-pods.value}}</span>
+          <a data-action="ajustar" data-ruta="system.supplies.escape-pods.value" data-delta="1" aria-label="Añadir 1 cápsula de escape">+</a>
+        </div>
+      </div>
+    </div>
+
+    <h3>Armamento <small>({{anclajes.usados}} / {{anclajes.max}} anclajes)</small></h3>
+    {{#if armas.length}}
+    <ul class="mr-kit-lista">
+      {{#each armas}}
+      <li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong>{{#if defensiva}} <span class="mr-kit-rasgo">defensiva</span>{{/if}} <span class="mr-kit-bonus">+{{bonus}}</span></li>
+      {{/each}}
+    </ul>
+    {{else}}
+    <p class="mr-kit-nota">Sin armas instaladas. Sin un arma ofensiva la nave no inflige MDMG y falla sus tiradas de Batalla.</p>
+    {{/if}}
+
+    <h3>Mejoras <small>({{mejoras.usadas}} / {{mejoras.max}})</small></h3>
+    {{#if modulos.length}}
+    <ul class="mr-kit-lista">
+      {{#each modulos}}
+      <li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong> <span class="mr-kit-rasgo">{{rasgo}}</span></li>
+      {{/each}}
+    </ul>
+    {{else}}
+    <p class="mr-kit-nota">Sin mejoras instaladas.</p>
+    {{/if}}
+
+    {{#if hangar.length}}
+    <h3>Naves de Clase 0 y carga</h3>
+    <ul class="mr-kit-lista">
+      {{#each hangar}}
+      <li><img src="{{img}}" width="22" height="22" alt="" /> <strong>{{nombre}}</strong> <span class="mr-kit-rasgo">×{{cantidad}}</span></li>
+      {{/each}}
+    </ul>
+    {{/if}}
+
+    <div class="mr-kit-acciones">
+      <button type="button" data-action="abrirFicha"><i class="fa-solid fa-id-card"></i> Abrir ficha</button>
+      <button type="button" data-action="abrirCompendio" data-pack="mejoras"><i class="fa-solid fa-list"></i> Compendio de mejoras</button>
+      <button type="button" data-action="abrirCompendio" data-pack="armas-nave"><i class="fa-solid fa-crosshairs"></i> Compendio de armas</button>
+      {{#if sincronizable}}<button type="button" data-action="sincronizar" data-tooltip="Recalcula anclajes, mejoras, Batalla y MDMG a partir de lo instalado"><i class="fa-solid fa-arrows-rotate"></i> Recalcular cifras</button>{{/if}}
+    </div>
+  </section>
+  {{/if}}
+
+  {{#if esEstado}}
+  <section class="mr-kit-seccion">
+    <h3>Registro de megadaño</h3>
+    <div class="mr-kit-mdmg" role="group" aria-label="Registro de megadaño">
+      {{#each circulos}}
+      <a data-action="alternarMdmg" data-indice="{{valor}}" class="mr-kit-circulo {{#if activo}}activo{{/if}} {{#if ultimo}}ultimo{{/if}}" aria-pressed="{{activo}}">{{valor}}</a>
+      {{/each}}
+    </div>
+    <p class="mr-kit-nota">MDMG acumulado: <strong>{{mdmg}}</strong> · MDMG por impacto: <strong>{{mdmgDado}}</strong>. Con 9 o más, la nave queda destruida. Solo se aplica el efecto del total.</p>
+    {{#if mdmg}}<p class="mr-kit-efecto">{{efecto}}</p>{{/if}}
+
+    <div class="mr-kit-acciones">
+      <button type="button" data-action="mantenimiento"><i class="fa-solid fa-wrench"></i> Mantenimiento</button>
+      <button type="button" data-action="megadanio"><i class="fa-solid fa-burst"></i> Megadaño</button>
+      <button type="button" data-action="socorro"><i class="fa-solid fa-tower-broadcast"></i> Señal de socorro</button>
+      <button type="button" data-action="quiebra"><i class="fa-solid fa-coins"></i> Salvación de quiebra</button>
+      <button type="button" data-action="iniciales"><i class="fa-solid fa-dice"></i> Averías iniciales</button>
+      <button type="button" data-action="reparar"><i class="fa-solid fa-screwdriver-wrench"></i> Reparar</button>
+    </div>
+
+    <h3>Reparaciones mayores <small>({{averiasMayores.length}})</small></h3>
+    {{#if averiasMayores.length}}
+    <ul class="mr-kit-lista averias">
+      {{#each averiasMayores}}
+      <li class="mayor"><span>{{nombre}}</span> <a data-action="borrarAveria" data-item-id="{{id}}" data-tooltip="Eliminar" aria-label="Eliminar avería"><i class="fa-solid fa-trash"></i></a></li>
+      {{/each}}
+    </ul>
+    {{else}}
+    <p class="mr-kit-nota">Sin reparaciones mayores pendientes.</p>
+    {{/if}}
+
+    <h3>Reparaciones menores <small>({{averiasMenores.length}})</small></h3>
+    {{#if averiasMenores.length}}
+    <ul class="mr-kit-lista averias">
+      {{#each averiasMenores}}
+      <li><span>{{nombre}}</span> <a data-action="borrarAveria" data-item-id="{{id}}" data-tooltip="Eliminar" aria-label="Eliminar avería"><i class="fa-solid fa-trash"></i></a></li>
+      {{/each}}
+    </ul>
+    {{else}}
+    <p class="mr-kit-nota">Sin reparaciones menores pendientes.</p>
+    {{/if}}
+  </section>
+  {{/if}}
+
+  {{#if esCubiertas}}
+  <section class="mr-kit-seccion">
+    <h3>Plano de cubierta</h3>
+    {{#if cubiertas.length}}
+    <ol class="mr-kit-cubiertas">
+      {{#each cubiertas}}<li>{{this}}</li>{{/each}}
+    </ol>
+    {{else}}
+    <p class="mr-kit-nota">Esta nave no tiene plano de cubierta en el manual.</p>
+    {{/if}}
+    {{#if notas.length}}
+    <h3>Notas</h3>
+    <ul class="mr-kit-notas">
+      {{#each notas}}<li>{{this}}</li>{{/each}}
+    </ul>
+    {{/if}}
+  </section>
+  {{/if}}
+
+  {{#if esReglas}}
+  <section class="mr-kit-seccion">
+    <div class="mr-kit-biografia">{{{reglas}}}</div>
+  </section>
+  {{/if}}
+  {{/if}}
+</div>

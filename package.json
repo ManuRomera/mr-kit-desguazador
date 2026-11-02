@@ -1,0 +1,16 @@
+{
+  "name": "mr-kit-desguazador",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Módulo de Foundry VTT con el contenido del Kit del Desguazador para Mothership (sistema mosh).",
+  "scripts": {
+    "datos": "node tools/contenido.mjs",
+    "build": "node tools/build.mjs",
+    "todo": "node tools/contenido.mjs && node tools/build.mjs",
+    "zip": "node scripts/zip.mjs"
+  },
+  "devDependencies": {
+    "classic-level": "2.0.0"
+  }
+}
