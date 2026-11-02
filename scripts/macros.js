@@ -3,9 +3,9 @@
  * Se exponen en game.mrKit.macros y las macros del compendio llaman a estos métodos.
  */
 import {
-  aviso, elegirNave, elegirModo, tirarD100, esExito, tirarEnTabla, resultadoDeTabla, publicarTirada, filaDado, tarjeta,
+  aviso, elegirNave, elegirModo, tirarSistema, publicarTirada, filaDado, tarjeta,
   mdmgTotal, aplicarImpacto, textoImpacto, valorMDMG, tirarExpresionMDMG, efectoMegadanio, tirarAverias, htmlAveria,
-  textoResultado, claseNave, formatearCreditos,
+  claseNave, formatearCreditos,
 } from "./util.js";
 
 const { DialogV2 } = foundry.applications.api;
@@ -39,41 +39,24 @@ export async function tiradaCaracteristica(nave = null, caracteristica = null) {
 /* ------------------------------------------------------------------ */
 /* Mantenimiento                                                       */
 /* ------------------------------------------------------------------ */
-export async function mantenimiento(nave = null, { titulo = "Tirada de mantenimiento", texto = null } = {}) {
+
+/**
+ * Mantenimiento, socorro y quiebra son del sistema: usa su diálogo de Ventaja/Normal/Desventaja, su tirada de
+ * característica (por debajo, 90+ falla, dobles críticos), el Estrés de «todos a bordo» y su enlace para tirar
+ * otra vez tras un fallo crítico. El Kit solo pone sus tablas (ajuste «Usar las tablas del Kit en las tiradas
+ * del sistema») y un botón para añadir la avería a la nave.
+ */
+export async function mantenimiento(nave = null) {
   nave ??= await elegirNave();
   if (!nave) return;
-
-  const modo = await elegirModo(titulo, texto ?? "Tirada de Sistemas. Un jefe de ingeniería dedicado puede dar Ventaja, a criterio del Guardián.");
-  if (!modo) return;
-
-  const objetivo = Number(nave.system.stats.systems.value) || 0;
-  const { roll, total, dados, critico } = await tirarD100(modo);
-  const exito = esExito(total, objetivo);
-  const { averias, rolls } = await tirarAverias(exito ? 0 : critico ? 2 : 1);
-
-  let cuerpo = `<p class="mr-kit-dados">${filaDado(dados)}</p>
-    <p class="mr-kit-resultado ${exito ? "ok" : "mal"}">${exito ? (critico ? "ÉXITO CRÍTICO" : "ÉXITO") : critico ? "FALLO CRÍTICO" : "FALLO"} · ${String(total).padStart(2, "0")} / ${objetivo}</p>`;
-
-  if (exito) {
-    cuerpo += `<p>Todo sigue funcionando con normalidad.</p>`;
-  } else {
-    cuerpo += `<p class="mr-kit-efecto">Todos a bordo ganan <strong>1 de Estrés</strong>.</p>`;
-    if (critico) cuerpo += `<p class="mr-kit-efecto mr-kit-critico">Fallo crítico: todos a bordo hacen una <strong>tirada de Pánico</strong> y se tira <strong>dos veces</strong> en la tabla.</p>`;
-    cuerpo += averias.map((a) => htmlAveria(a, nave)).join("");
-  }
-
-  const html = tarjeta({ titulo, icono: "averia", subtitulo: `${nave.name} · Sistemas ${objetivo}`, cuerpo, clase: exito ? "exito" : "fallo" });
-  return publicarTirada([roll, ...rolls], html, { actor: nave, flavor: titulo });
+  return nave.maintenanceCheck();
 }
 
-/** Informe tras la batalla: tirada de Sistemas si la nave ha sufrido MDMG. */
+/** Informe tras la batalla: tirada de Sistemas y, si falla, la tabla de averías; es la misma tirada que el mantenimiento. */
 export function informeBatalla(nave = null) {
-  return mantenimiento(nave, {
-    titulo: "Informe tras la batalla",
-    texto: "Tras un enfrentamiento violento en el que la nave ha sufrido MDMG, haz una tirada de Sistemas. Si fallas, tira en la tabla de averías de mantenimiento; con un fallo crítico, dos veces.",
-  });
+  ui.notifications.info("Informe tras la batalla: tirada de Sistemas; si fallas, tabla de averías de mantenimiento.");
+  return mantenimiento(nave);
 }
-
 /* ------------------------------------------------------------------ */
 /* Megadaño                                                            */
 /* ------------------------------------------------------------------ */
@@ -119,56 +102,31 @@ export async function megadanio(nave = null) {
 /* ------------------------------------------------------------------ */
 /* Señal de socorro                                                    */
 /* ------------------------------------------------------------------ */
+
 export async function socorro(nave = null) {
-  nave ??= await elegirNave({ obligatoria: false });
-  const r = await tirarEnTabla("socorro");
-  if (!r) return ui.notifications.error("No se encuentra la tabla de señales de socorro del módulo.");
-
-  const t = r.total;
-  const extra = t >= 3 && t <= 4
-    ? `<p class="mr-kit-efecto">Salvación de <strong>Cuerpo</strong> o pierde <strong>1d5</strong> en todas las Características y Salvaciones.</p>`
-    : t === 5
-      ? `<p class="mr-kit-efecto">Salvación de <strong>Cuerpo [-]</strong> o pierde <strong>1d10</strong> en todas las Características y Salvaciones.</p>`
-      : "";
-
-  const html = tarjeta({
-    titulo: "Señal de socorro", icono: "socorro",
-    subtitulo: `d10 · ${String(t).padStart(2, "0")}`,
-    cuerpo: `<p>${textoResultado(r.resultado).replace(/^\d\d(-\d\d)?\s*·\s*/, "")}</p>${extra}`,
-    clase: "fallo",
-  });
-  return publicarTirada(r.roll, html, { actor: nave, flavor: "Señal de socorro" });
+  nave ??= await elegirNave();
+  if (!nave) return;
+  // El diálogo del sistema (`distressSignal`) apunta a una plantilla que no existe en mosh 0.6.1: se pide el modo aquí y se
+  // tira con la misma llamada que usa el sistema (d10 por debajo, tabla de 0 a 9).
+  const modo = await elegirModo("Señal de socorro", "Tira 1d10 en la tabla de señales de socorro.");
+  if (!modo) return;
+  const dado = modo === "ventaja" ? "1d10 [+]" : modo === "desventaja" ? "1d10 [-]" : "1d10";
+  return nave.rollTable(game.settings.get("mosh", "table1eDistressSignal"), dado, "low", true, false, null, null);
 }
-
 /* ------------------------------------------------------------------ */
 /* Salvación de quiebra                                                */
 /* ------------------------------------------------------------------ */
+
 export async function quiebra(nave = null) {
-  nave ??= await elegirNave({ obligatoria: false });
-  const modo = await elegirModo("Salvación de Quiebra", "La Salvación de Quiebra empieza en 2d10+10. Ajusta el valor de la nave si ha cambiado.");
-  if (!modo) return;
-
-  const objetivo = Number(nave?.system?.stats?.bankruptcy?.value ?? 20);
-  const { roll, total, dados, critico } = await tirarD100(modo);
-  const exito = esExito(total, objetivo);
-  const clave = exito ? (critico ? 0 : 1) : critico ? 3 : 2;
-  const etiqueta = ["Éxito crítico", "Éxito", "Fallo", "Fallo crítico"][clave];
-
-  const { resultado } = (await resultadoDeTabla("quiebra", clave)) ?? {};
-  const html = tarjeta({
-    titulo: "Salvación de Quiebra", icono: "quiebra",
-    subtitulo: `${nave?.name ?? "Empresa"} · objetivo ${objetivo} o menos`,
-    cuerpo: `<p class="mr-kit-dados">${filaDado(dados)}</p>
-      <p class="mr-kit-resultado ${exito ? "ok" : "mal"}">${etiqueta} · ${String(total).padStart(2, "0")}</p>
-      <p>${(resultado?.description ?? "—").replace(/^[^·]*·\s*/, "")}</p>`,
-    clase: exito ? "exito" : "fallo",
-  });
-  return publicarTirada(roll, html, { actor: nave, flavor: "Salvación de Quiebra" });
+  nave ??= await elegirNave();
+  if (!nave) return;
+  return nave.bankruptcySave();
 }
-
 /* ------------------------------------------------------------------ */
 /* Moral                                                               */
 /* ------------------------------------------------------------------ */
+
+/** Moral de una nave enemiga sin ficha: 1d10 (0-9) con la misma regla que el sistema; si saca menos que su MDMG, puede pedir un alto el fuego. */
 export async function moral(mdmgEnemigo = null) {
   const mdmg = mdmgEnemigo ?? await DialogV2.wait({
     window: { title: "Tirada de moral" },
@@ -179,22 +137,24 @@ export async function moral(mdmgEnemigo = null) {
     rejectClose: false,
   });
   if (mdmg == null) return;
+  const modo = await elegirModo("Tirada de moral", "La nave enemiga tira 1d10: si saca menos que su MDMG, puede ofrecer un alto el fuego.");
+  if (!modo) return;
 
-  const roll = await tirar("1d10-1");
-  const valor = roll.total;
-  const ofrece = valor < mdmg;
+  const actor = game.actors.find((a) => a.type === "ship") ?? game.actors.contents[0];
+  const { roll, total, exito, dados } = await tirarSistema(actor, { dado: "1d10", modo, aim: "high", objetivo: mdmg, comparacion: ">=", criticos: false });
+  const ofrece = !exito;
 
   const html = tarjeta({
-    titulo: "Tirada de moral", icono: "moral",
+    titulo: "Tirada de moral",
+    icono: "moral",
     subtitulo: `MDMG enemigo ${mdmg}`,
-    cuerpo: `<p class="mr-kit-dados">${filaDado([valor])}</p>
-      <p class="mr-kit-resultado ${ofrece ? "ok" : "mal"}">${ofrece ? "Ofrece un alto el fuego" : "Sigue combatiendo"} · ${valor}</p>
+    cuerpo: `<p class="mr-kit-dados">${filaDado(dados)}</p>
+      <p class="mr-kit-resultado ${ofrece ? "ok" : "mal"}">${ofrece ? "Ofrece un alto el fuego" : "Sigue combatiendo"} · ${total}</p>
       <p class="mr-kit-nota">Si saca menos que su MDMG actual, puede enviar una llamada para ofrecer un alto el fuego y reanudar las negociaciones.</p>`,
     clase: ofrece ? "exito" : "fallo",
   });
   return publicarTirada(roll, html, { flavor: "Moral" });
 }
-
 /* ------------------------------------------------------------------ */
 /* Averías iniciales                                                   */
 /* ------------------------------------------------------------------ */

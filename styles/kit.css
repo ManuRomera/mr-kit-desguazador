@@ -803,3 +803,36 @@ body.mr-mosh-movimiento .mr-kit-card * {
 .mr-kit-boton-mini {
   user-select: none;
 }
+
+/* Botón «Añadir a la nave» en las tarjetas del sistema */
+.mr-kit-boton-averia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin: 4px 0 4px 8px;
+  padding: 2px 12px;
+  border: none;
+  border-radius: 21px;
+  background: #111;
+  color: #fff;
+  font-size: 0.85em;
+  font-weight: bold;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.mr-kit-boton-averia:hover {
+  box-shadow: 0 0 10px 0 #9e9e9e;
+}
+
+.mr-kit-boton-averia:disabled {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}
+
+body.mr-mosh-oscuro .mr-kit-boton-averia {
+  background: #2e2e32;
+  color: #ececee;
+}

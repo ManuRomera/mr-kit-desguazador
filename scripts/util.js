@@ -4,7 +4,6 @@
  */
 
 export const MODULE = "mr-kit-desguazador";
-export const DOBLES = new Set([0, 11, 22, 33, 44, 55, 66, 77, 88, 99]);
 export const BANDAS = ["contacto", "disparo", "deteccion"];
 export const ETIQUETA_BANDA = { contacto: "Contacto", disparo: "Disparo", deteccion: "Detección" };
 export const COSTE_EVASION = { contacto: 3, disparo: 2, deteccion: 1 };
@@ -73,18 +72,19 @@ export async function elegirNave({ titulo = "Selecciona una nave", obligatoria =
 /* Tiradas                                                             */
 /* ------------------------------------------------------------------ */
 /**
- * Tirada d100 de Mothership (0-99). Con ventaja o desventaja se tiran dos y se elige la mejor
- * (la menor, porque se tira por debajo) o la peor. Devuelve el Roll para poder mostrarlo en el chat.
+ * Tirada con la lógica del propio sistema mosh: la cadena (`1d100`, `1d100 [+]`, `1d10 [-]`…) se convierte con
+ * `actor.parseRollString` y el resultado se interpreta con `actor.parseRollResult` (ventaja y desventaja con la
+ * regla de críticos del sistema, 90 o más siempre falla, dobles = crítico, 100 cuenta como 00).
+ * `aim`: «low» tira por debajo del objetivo, «high» por encima. Devuelve el Roll para el chat.
  */
-export async function tirarD100(modo = "normal") {
-  const roll = await new Roll(modo === "normal" ? "1d100" : "2d100").evaluate();
-  const dados = roll.dice[0].results.map((r) => r.result % 100);
-  const total = modo === "ventaja" ? Math.min(...dados) : modo === "desventaja" ? Math.max(...dados) : dados[0];
-  return { roll, total, dados, critico: DOBLES.has(total) };
+export async function tirarSistema(actor, { dado = "1d100", modo = "normal", aim = "low", objetivo = null, comparacion = "<", cero = true, criticos = true } = {}) {
+  const marca = modo === "ventaja" ? " [+]" : modo === "desventaja" ? " [-]" : "";
+  const cadena = `${dado}${marca}`;
+  const roll = await new Roll(actor.parseRollString(cadena, aim)).evaluate();
+  const r = actor.parseRollResult(cadena, roll, cero, criticos, objetivo, comparacion, null);
+  const dados = roll.dice.flatMap((d) => d.results.map((x) => x.result));
+  return { roll, total: r.total, exito: Boolean(r.success), critico: Boolean(r.critical), dados };
 }
-
-/** Éxito de una tirada contra un valor: por debajo del objetivo y nunca con 90-99. */
-export const esExito = (total, objetivo) => total < objetivo && total < 90;
 
 /**
  * Publica un mensaje de chat con el HTML dado y adjunta las tiradas (para Dice So Nice y el registro).
@@ -201,8 +201,9 @@ export async function aplicarImpacto(nave, cantidad) {
     }
   }
 
+  // El registro lleva una sola marca, la del total: solo se aplica el efecto del total acumulado.
   const total = Math.min(9, anterior + resto);
-  if (total !== anterior) cambios["system.megadamage.hits"] = Array.from({ length: total }, (_, i) => i + 1);
+  if (total !== anterior) cambios["system.megadamage.hits"] = total ? [total] : [];
   if (Object.keys(cambios).length) await nave.update(cambios);
   return { anterior, total, resto, absorbido, cascoDestruido };
 }
@@ -306,8 +307,37 @@ export function htmlAveria(a, nave) {
 /* ------------------------------------------------------------------ */
 /* Botones del chat                                                    */
 /* ------------------------------------------------------------------ */
+/** UUID de un objeto/tabla del módulo: Compendium.<módulo>.<pack>.<Tipo>.<id>. */
+export const uuidDeTabla = async (clave) => (await tablaDePack(clave))?.uuid ?? null;
+
+/** Añade a la nave un objeto del compendio de averías (por su UUID) y devuelve el objeto creado. */
+export async function crearAveriaDesdeUuid(nave, uuid) {
+  const item = await fromUuid(uuid);
+  if (!item || item.type !== "repair") return null;
+  const datos = item.toObject();
+  delete datos._id;
+  const [creado] = await nave.createEmbeddedDocuments("Item", [datos]);
+  return creado;
+}
+
 export function registrarBotonesChat() {
   Hooks.on("renderChatMessageHTML", (message, html) => {
+    // Tarjetas del sistema (mantenimiento…): junto a cada enlace a una avería del Kit, un botón para añadirla a la nave.
+    const nave = ChatMessage.getSpeakerActor(message.speaker);
+    if (nave?.type === "ship" && nave.isOwner) {
+      html.querySelectorAll(`a.content-link[data-uuid*="Compendium.${MODULE}.averias."]`).forEach((enlace) => {
+        if (enlace.nextElementSibling?.dataset?.mrkitAction) return;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "mr-kit-boton-averia";
+        b.dataset.mrkitAction = "aplicar-averia-uuid";
+        b.dataset.actor = nave.id;
+        b.dataset.uuid = enlace.dataset.uuid;
+        b.innerHTML = '<i class="fa-solid fa-plus"></i> Añadir a la nave';
+        enlace.after(b);
+      });
+    }
+
     html.querySelectorAll("[data-mrkit-action]").forEach((boton) => {
       boton.addEventListener("click", async (ev) => {
         ev.preventDefault();
@@ -316,14 +346,13 @@ export function registrarBotonesChat() {
         if (!nave.isOwner) return ui.notifications.warn("No tienes permiso sobre esa nave.");
         const accion = boton.dataset.mrkitAction;
 
-        if (accion === "aplicar-averia") {
-          const creada = await crearAveriaEnNave(nave, boton.dataset.numero);
+        if (accion === "aplicar-averia" || accion === "aplicar-averia-uuid") {
+          const creada = accion === "aplicar-averia" ? await crearAveriaEnNave(nave, boton.dataset.numero) : await crearAveriaDesdeUuid(nave, boton.dataset.uuid);
           if (!creada) return ui.notifications.error("No se encontró la avería en el compendio.");
           ui.notifications.info(`Avería añadida a ${nave.name}: ${creada.name}`);
           boton.disabled = true;
           boton.textContent = "Avería añadida";
         }
-
       });
     });
   });

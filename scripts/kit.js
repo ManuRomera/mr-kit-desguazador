@@ -3,7 +3,7 @@
  * Contenido y automatizaciones del Shipbreakers Toolkit para Mothership (sistema mosh).
  * Punto de entrada: ajustes, parche de mantenimiento, pestaña Dossier y sincronización de cifras.
  */
-import { MODULE, registrarBotonesChat, elegirNave } from "./util.js";
+import { MODULE, registrarBotonesChat, elegirNave, uuidDeTabla } from "./util.js";
 import * as macros from "./macros.js";
 import { DossierNave } from "./dossier.js";
 import { CombateNaves } from "./combate.js";
@@ -40,9 +40,9 @@ Hooks.once("init", () => {
     scope: "client", config: true, type: Boolean, default: true,
   });
 
-  game.settings.register(MODULE, "mantenimientoSBT", {
-    name: "Usar la tabla de averías del Kit del Desguazador",
-    hint: "Sustituye la tirada de mantenimiento de la ficha de nave por la del Kit: 69 averías menores y 31 mayores, con botón para añadirlas a la nave. Si se desactiva, se usa la tabla del sistema.",
+  game.settings.register(MODULE, "tablasSistema", {
+    name: "Usar las tablas del Kit en las tiradas del sistema",
+    hint: "El mantenimiento, las señales de socorro, la salvación de quiebra y la lista de megadaño de la ficha de nave usan las tablas del Kit del Desguazador (averías d100, megadaño, socorro y quiebra) en lugar de las del sistema. Al desactivarlo se restauran las del sistema.",
     scope: "world", config: true, type: Boolean, default: true,
   });
 
@@ -73,21 +73,27 @@ Hooks.once("ready", () => {
 
   registrarBotonesChat();
   registrarSincronizacion();
-  parchearMantenimiento();
+  vincularTablas().catch((err) => console.error(`${MODULE} | No se pudieron vincular las tablas`, err));
 });
 
 /* ------------------------------------------------------------------ */
-/* Parche de mantenimiento                                             */
+/* Tablas del Kit en los ajustes del sistema                           */
 /* ------------------------------------------------------------------ */
-function parchearMantenimiento() {
-  const proto = CONFIG.Actor?.documentClass?.prototype;
-  if (!proto || typeof proto.maintenanceCheck !== "function" || proto.__mrKitMantenimientoOriginal) return;
+/** Ajuste de mosh → clave de la tabla del Kit que lo sustituye. */
+const TABLAS = { table1eMaintenance: "averias", table1eDistressSignal: "socorro", table1eBankruptcy: "quiebra", table1eMegadamageEffects: "megadanio" };
 
-  proto.__mrKitMantenimientoOriginal = proto.maintenanceCheck;
-  proto.maintenanceCheck = function (...args) {
-    if (this.type === "ship" && game.settings.get(MODULE, "mantenimientoSBT")) return macros.mantenimiento(this);
-    return proto.__mrKitMantenimientoOriginal.apply(this, args);
-  };
+/**
+ * El sistema lee qué tabla usar de sus ajustes (`table1e…`). Mientras el ajuste del Kit esté activo, esas lecturas
+ * devuelven las tablas del Kit; los ajustes del sistema no se tocan, así que al desactivar el módulo todo vuelve a
+ * ser como antes.
+ */
+async function vincularTablas() {
+  if (game.system.id !== "mosh") return;
+  const uuids = {};
+  for (const [ajuste, clave] of Object.entries(TABLAS)) uuids[ajuste] = await uuidDeTabla(clave);
+  const leer = game.settings.get.bind(game.settings);
+  game.settings.get = (modulo, clave, opciones) =>
+    modulo === "mosh" && uuids[clave] && leer(MODULE, "tablasSistema") ? uuids[clave] : leer(modulo, clave, opciones);
 }
 
 /* ------------------------------------------------------------------ */

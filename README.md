@@ -38,7 +38,7 @@ Las ventanas, los diálogos y las tarjetas del chat usan el aspecto de las hojas
 | --- | --- |
 | **MR- Mothership en español** (recomendado) | Una sola configuración de **accesibilidad** (tamaño del texto, contraste, fuente legible, reducir movimiento, ayuda inmediata) y el **modo oscuro**: lo que elijas allí se aplica también al Kit. La pestaña Dossier aparece en la ficha de nave ya traducida. Sin este módulo, el Kit lleva sus propios ajustes de accesibilidad. |
 | **MR- Nádir**, **MR- EIDOLON**, **MR- Dirección** | Se pueden usar a la vez: el Kit no toca escenas, música ni relojes, y sus naves valen como naves de esas aventuras. |
-| **Sistema mosh** | Usa su ficha de nave (la del Kit del Desguazador), su tirada de mantenimiento y su tirada de característica; las tarjetas del chat son las del sistema. |
+| **Sistema mosh** | Usa su ficha de nave (la del Kit del Desguazador), su tirada de mantenimiento, de socorro, de quiebra y de característica; el Kit solo aporta las tablas. |
 
 Las ventanas del Kit recuerdan su posición, su tamaño y la pestaña en la que estabas.
 
@@ -103,19 +103,21 @@ Con una nave seleccionada o controlada, abre su ficha y pulsa la pestaña **Doss
 - **Plano de cubierta:** el plano numerado de la nave y sus notas.
 - **Reglas de la nave:** lo propio de cada nave (inspecciones aduaneras de la Patrullera, ley de salvamento del Cúter, secciones de infantería, viaje típico en Jumpliner, tarifas…).
 
-### Mantenimiento
+### Tiradas: las del sistema
 
-La tirada de mantenimiento de la ficha del sistema se sustituye por la del Kit cuando el ajuste **Usar la tabla de averías del Kit del Desguazador** está activo (por defecto). El resultado se publica en el chat con la tirada de Sistemas, el Estrés y la avería, con un botón para añadirla a la nave como objeto `repair`.
+El Kit no inventa su propia mecánica de dados: las tiradas son las del sistema `mosh` (por debajo del valor, 90 o más siempre falla, dobles críticos, Ventaja y Desventaja con su regla de críticos, 100 cuenta como 00). Lo que pone el Kit son los **datos**: mientras el ajuste **Usar las tablas del Kit en las tiradas del sistema** esté activo, el sistema usa las tablas del Kit del Desguazador donde antes usaba las suyas.
 
-- Éxito: todo funciona con normalidad.
-- Fallo: 1 de Estrés y una tirada en la tabla d100.
-- Fallo crítico: 1 de Estrés, tirada de Pánico y dos tiradas en la tabla.
+- **Mantenimiento** (botón de la ficha o macro): tirada de Sistemas del sistema; si fallas, tabla de averías d100 del Kit, Estrés a todos a bordo y enlace del sistema para tirar otra vez tras un fallo crítico. Junto a la avería aparece un botón **Añadir a la nave** que la crea como objeto `repair`.
+- **Señal de socorro** y **Salvación de quiebra**: la tirada del sistema con la tabla del Kit.
+- **Lista de megadaño de la ficha de nave**: los efectos del Kit.
+- **Tiradas de característica** (Propulsores, Batalla, Sistemas): `rollCheck` del sistema.
+- **Combate de naves**: las tiradas del panel usan la misma interpretación de resultados que el sistema.
 
-El *Informe tras la batalla* es la misma tirada, tras un combate en el que la nave ha sufrido MDMG.
+El *Informe tras la batalla* es la misma tirada de mantenimiento, tras un combate en el que la nave ha sufrido MDMG.
 
 ### Megadaño y Casco
 
-La macro *Megadaño* suma el MDMG al registro de la nave y muestra el efecto del total (solo se aplica el efecto del total acumulado). El Casco ignora el MDMG inferior a su valor; si un impacto lo iguala o lo supera, el Casco queda destruido y la nave sufre el resto. Con 9 o más, la nave queda destruida.
+La macro *Megadaño* suma el MDMG a la nave y deja **una sola marca** en el registro, la del total, con su efecto (solo se aplica el efecto del total acumulado). El Casco ignora el MDMG inferior a su valor; si un impacto lo iguala o lo supera, el Casco queda destruido y la nave sufre el resto. Con 9 o más, la nave queda destruida.
 
 ### Combate de naves
 
@@ -153,13 +155,13 @@ Todas las ventanas llevan un icono en la cabecera con tamaño del texto, modo os
 | Ajuste | Ámbito | Por defecto | Descripción |
 | --- | --- | --- | --- |
 | Botón Dossier en la ficha de nave | Cliente | Activado | Añade la pestaña **Dossier** a la ficha de nave. |
-| Usar la tabla de averías del Kit | Mundo | Activado | Sustituye la tirada de mantenimiento del sistema por la del Kit. |
+| Usar las tablas del Kit en las tiradas del sistema | Mundo | Activado | Mantenimiento, socorro, quiebra y lista de megadaño usan las tablas del Kit. No modifica los ajustes del sistema. |
 | Mantener al día las cifras de la nave | Mundo | Activado | Recalcula las cifras de las naves del Kit al cambiar sus armas, mejoras y naves de Clase 0. |
 | Accesibilidad (6 ajustes) | Cliente | — | Tamaño del texto, modo oscuro, alto contraste, fuente legible, reducir movimiento y ayuda inmediata. Solo aparecen si MR- Mothership en español no está activo. |
 
 --- | --- | --- | --- |
 | Botón Dossier en la ficha de nave | Cliente | Activado | Añade la pestaña **Dossier** a la ficha de nave. |
-| Usar la tabla de averías del Kit | Mundo | Activado | Sustituye la tirada de mantenimiento del sistema por la del Kit. |
+| Usar las tablas del Kit en las tiradas del sistema | Mundo | Activado | Mantenimiento, socorro, quiebra y lista de megadaño usan las tablas del Kit. No modifica los ajustes del sistema. |
 | Avisar al abrir una nave sin dossier | Cliente | Desactivado | Reservado para avisos de descubrimiento del dossier. |
 
 ---

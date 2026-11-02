@@ -78,7 +78,7 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
 
     const mdmg = mdmgTotal(actor);
     const hits = (sistema.megadamage?.hits ?? []).map(Number);
-    const circulos = Array.from({ length: 9 }, (_, i) => ({ valor: i + 1, activo: hits.includes(i + 1), ultimo: i + 1 === mdmg }));
+    const circulos = Array.from({ length: 9 }, (_, i) => ({ valor: i + 1, activo: i + 1 === mdmg, ultimo: i + 1 === mdmg }));
 
     const enriquecer = (html) => foundry.applications.ux.TextEditor.implementation.enrichHTML(html ?? "", { relativeTo: actor });
 
@@ -133,11 +133,9 @@ export class DossierNave extends ConAccesibilidad(HandlebarsApplicationMixin(App
   }
 
   static async alternarMdmg(event, target) {
+    // Una sola marca, la del total; pulsar la marcada la quita.
     const indice = Number(target.dataset.indice);
-    const hits = new Set((this.actor.system.megadamage?.hits ?? []).map(Number));
-    if (hits.has(indice)) for (let i = indice; i <= 9; i++) hits.delete(i);
-    else for (let i = 1; i <= indice; i++) hits.add(i);
-    await this.actor.update({ "system.megadamage.hits": [...hits].sort((a, b) => a - b) });
+    await this.actor.update({ "system.megadamage.hits": mdmgTotal(this.actor) === indice ? [] : [indice] });
   }
 
   static async borrarAveria(event, target) {

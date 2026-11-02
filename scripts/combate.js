@@ -3,7 +3,7 @@
  */
 import {
   MODULE, BANDAS, ETIQUETA_BANDA, COSTE_EVASION, mdmgTotal, aplicarImpacto, valorMDMG, tirarExpresionMDMG,
-  tirarD100, esExito, efectoMegadanio, publicarTirada, tarjeta, claseNave, navesDisponibles,
+  tirarSistema, efectoMegadanio, publicarTirada, tarjeta, claseNave, navesDisponibles,
 } from "./util.js";
 import { ConAccesibilidad } from "./accesibilidad.js";
 import * as macros from "./macros.js";
@@ -185,13 +185,13 @@ export class CombateNaves extends ConAccesibilidad(HandlebarsApplicationMixin(Ap
       if (efectoN === 3) {
         lineas.push("Sin navegación (MDMG 3): tu nave no puede hacer tiradas de Propulsores y falla.");
       } else {
-        const r = await tirarD100(gasto > gastoE ? "ventaja" : "normal");
+        const r = await tirarSistema(nave, { modo: gasto > gastoE ? "ventaja" : "normal", objetivo: Number(nave.system.stats.thrusters.value) || 0 });
         rolls.push(r.roll);
-        Object.assign(P, { valor: r.total, critico: r.critico, exito: esExito(r.total, Number(nave.system.stats.thrusters.value) || 0) });
+        Object.assign(P, { valor: r.total, critico: r.critico, exito: r.exito });
       }
-      const r2 = await tirarD100(gastoE > gasto ? "ventaja" : "normal");
+      const r2 = await tirarSistema(nave, { modo: gastoE > gasto ? "ventaja" : "normal", objetivo: e.pro });
       rolls.push(r2.roll);
-      Object.assign(E, { valor: r2.total, critico: r2.critico, exito: esExito(r2.total, e.pro) });
+      Object.assign(E, { valor: r2.total, critico: r2.critico, exito: r2.exito });
     }
 
     // Éxito crítico: avanzas aunque el enemigo también tenga éxito. Fallo crítico: el otro avanza aunque falle.
@@ -247,15 +247,15 @@ export class CombateNaves extends ConAccesibilidad(HandlebarsApplicationMixin(Ap
     const P = { exito: false, critico: false, valor: null };
     const E = { exito: false, critico: false, valor: null };
     if (tieneArmas) {
-      const r = await tirarD100(modoP);
+      const r = await tirarSistema(nave, { modo: modoP, objetivo: Number(nave.system.stats.battle.value) || 0 });
       rolls.push(r.roll);
-      Object.assign(P, { valor: r.total, critico: r.critico, exito: esExito(r.total, Number(nave.system.stats.battle.value) || 0) });
+      Object.assign(P, { valor: r.total, critico: r.critico, exito: r.exito });
     }
     if (!tieneArmas) E.exito = true;
     else if (e.armas) {
-      const r = await tirarD100(modoE);
+      const r = await tirarSistema(nave, { modo: modoE, objetivo: e.bat });
       rolls.push(r.roll);
-      Object.assign(E, { valor: r.total, critico: r.critico, exito: esExito(r.total, e.bat) });
+      Object.assign(E, { valor: r.total, critico: r.critico, exito: r.exito });
     }
 
     // MDMG: éxito = MDMG de la nave (doble con crítico); fallo = 1 de MDMG propio (2 con crítico) además.

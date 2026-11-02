@@ -1,5 +1,22 @@
 # Historial de cambios
 
+## 1.3.0 — 2026-11-02
+
+Las tiradas pasan a ser las del sistema mosh.
+
+### Corregido
+
+- El Kit tiraba el mantenimiento, el socorro y la quiebra con su propia mecánica. Ahora lo hace el sistema (diálogo de Ventaja/Desventaja, tirada de característica, Estrés a todos a bordo, enlace para tirar otra vez tras un fallo crítico) y el Kit le da sus tablas.
+- El registro de megadaño marcaba todos los niveles hasta el total, así que la ficha del sistema mostraba varios efectos a la vez. Ahora lleva una sola marca (el total) y solo se aplica su efecto.
+- Las tiradas del panel de combate interpretan Ventaja, Desventaja, críticos y el fallo automático con 90 o más con las mismas funciones del sistema.
+- La lista de megadaño de la ficha de nave repetía el número delante del efecto.
+
+### Cambiado
+
+- El ajuste «Usar la tabla de averías del Kit» (que sustituía una función del sistema) es ahora «Usar las tablas del Kit en las tiradas del sistema»: el Kit responde con sus tablas cuando el sistema las pide, sin modificar los ajustes del sistema, así que al desactivar el módulo todo vuelve a ser como antes.
+- Las tarjetas de mantenimiento son las del sistema; junto a cada avería del Kit aparece un botón «Añadir a la nave».
+- La señal de socorro se tira con la llamada `rollTable` del sistema porque su diálogo propio apunta a una plantilla que no existe en mosh 0.6.1.
+
 ## 1.2.0 — 2026-11-02
 
 Aspecto y compatibilidad con el resto de módulos de Mothership, y preparación para publicar.
